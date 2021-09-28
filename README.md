@@ -83,6 +83,21 @@ finally
 }
 ```
 
+## Supported patterns
+
+| Pattern   | Example match                     | Description                                               |
+|-----------|-----------------------------------|-----------------------------------------------------------|
+| literal   | foo => foo                        | Matches any literal sequence of characters                |
+| ?         | path/?foo => path/Afoo            | Matches any single character                              |
+| *         | path/*foo => path/somefoo         | Matches any sequence of characters within a path segment  |
+| **         | path/**/foo => path/some/sub/foo | Matches any number of path segments                       |
+| [a-z]     | path/[e-l]foo => path/gfoo        | Matches a single character within the given range         |
+| [0-9]     | path/[3-5]foo => path/3foo        | Matches a single numeric digit within the given range     |
+| [!a-z]    | path/[!e-l]foo => path/afoo       | Matches a single character not within the given range     |
+| [!0-9]    | path/[!3-5] => path/1foo          | Matches a single numeric digit not within the given range |
+| [abcz]    | path/[verity]foo => path/vfoo     | Matches a single character within the given set           |
+| [!abcz]   | path/[!verity]foo => path/afoo    | Matches a single character not within the given set       |
+   
 ## Benchmarks
 
 We have used Benchmark Dotnet to compare the performance with raw RegEx and DotNet.Glob. This represents a current example run.
