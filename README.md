@@ -16,7 +16,7 @@ Our motivation for this came when "link stripping" documents to be returned from
 
 We also want to minimize allocations on the hot-path of a request handler. 
 
-Dotnet.Glob offers better raw performance with a pre-compiled and cached glob used many times (at the expense of some heap allocation per glob), but Cortvus.Globbing offers better performance when compiling and using a glob transiently against ~50 paths or fewer, with zero allocations.
+Dotnet.Glob offers better raw performance with a pre-compiled and cached glob used many times (at the expense of some heap allocation per glob), but Corvus.Globbing offers better performance when compiling and using a glob transiently against ~50 paths or fewer, with zero allocations.
 
 ## Usage
 
