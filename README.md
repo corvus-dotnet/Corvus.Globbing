@@ -21,7 +21,7 @@ We also want to minimize allocations on the hot-path of a request handler.
 The simplest case just requires you to pass the glob and the candidate path to match.
 
 ```csharp
-bool isMatch = Glob.Match("path/*atstand", "path/fooatstand"); 
+bool isMatch = Glob.Match("path/*atstand", "PATH/fooatstand"); 
 ```
 
 We support all the standard string-comparison types. The default is `StringComparison.Ordinal` (i.e. case sensitive), but you could do a case insensitive match:
