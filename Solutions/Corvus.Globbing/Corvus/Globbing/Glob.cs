@@ -150,7 +150,7 @@ namespace Corvus.Globbing
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool MatchWildcardDirectory(ReadOnlySpan<char> glob, ReadOnlySpan<GlobToken> tokenizedGlob, int tokenIndex, ReadOnlySpan<char> value, StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
         {
-            // If we are matching a directory, there must be at least one path separator the remaining string.
+            // If we are matching a directory, there must be at least one path separator in the remaining string.
             if (value.Length == 0)
             {
                 charactersMatched = 0;
@@ -175,7 +175,7 @@ namespace Corvus.Globbing
             }
             else
             {
-                // There is no explicit leading separator the glob (i.e. we have specified ** not /**)
+                // There is no explicit leading separator in the glob pattern (i.e. we have specified ** not /**)
                 // However, the input string may or may not support a leading path separator - it is optional.
                 // (so either /foo/bar or foo/bar will match)
                 if (GlobTokenizer.IsPathSeparatorChar(currentChar))
@@ -185,7 +185,7 @@ namespace Corvus.Globbing
                 }
             }
 
-            // If we have no other tokens to consume, we know we match
+            // If we have no other tokens to consume, we know we match.
             if (tokenizedGlob.Length <= tokenIndex + 1)
             {
                 charactersMatched = value.Length;
@@ -193,7 +193,7 @@ namespace Corvus.Globbing
                 return true;
             }
 
-            // If the remaining tokens are optional (i.e. consume a minimum of 0 tokens) then we can also match.
+            // If the remaining tokens are optional (i.e. consume a minimum of 0 tokens) then we must also match.
             ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1) ..];
             int remainingMinLength = remainingPattern.Length == 0 ? 0 : SumMatchesMinLength(remainingPattern);
             if (remainingMinLength == 0)
@@ -265,7 +265,7 @@ namespace Corvus.Globbing
                 // Keep track of whether we have seen a separator; we must see at least one separator to be a whole segment
                 bool matchedSeparator = false;
 
-                // Iterate throught the string until we reach the
+                // Iterate through the string until we reach the
                 // maximum possible substring
                 while (currentPosition <= maxPos)
                 {
@@ -280,9 +280,11 @@ namespace Corvus.Globbing
                         }
                     }
 
+                    // Try and match the remainder
                     isMatch = Match(glob, remainingPattern, value[currentPosition..], comparisonType, out int internalCharactersMatched, out int internalTokensConsumed);
                     if (isMatch)
                     {
+                        // It was a match, that's great!
                         charactersMatched = currentPosition + internalCharactersMatched;
                         tokensConsumed = internalTokensConsumed + 1;
                         return true;
@@ -296,7 +298,8 @@ namespace Corvus.Globbing
                         return false;
                     }
 
-                    // Iterate until we hit the next separator or maxPos.
+                    // Otherwise, we skip on until we hit the next separator or maxPos, and then go
+                    // back round and see if the *next* segment matches the remainder
                     matchedSeparator = false;
                     while (currentPosition < maxPos)
                     {
@@ -326,8 +329,8 @@ namespace Corvus.Globbing
             // First, check to see if we are the last token the glob
             if (tokenIndex == tokenizedGlob.Length - 1)
             {
-                // We are the last token the glob
-                // If we have reached the end of the value, then we match, because it is valid for * to match 0 characters.
+                // We are the last token in the glob
+                // If we have reached the end of the value, then we always match, because it is valid for * to match 0 characters.
                 if (value.Length == 0)
                 {
                     charactersMatched = 0;
@@ -352,8 +355,8 @@ namespace Corvus.Globbing
                 return true;
             }
 
-            // We are not the last token the glob, and so we need to ensure that however much we consume, the remaining tokens also match.
-            // First, we ask: does the rest of pattern match a fixed length, or variable length?
+            // We are not the last token in the glob, and so we need to ensure that however much we consume, the remaining tokens also match.
+            // First: does the rest of pattern match a fixed length, or variable length?
             ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1) ..];
             if (MatchesFixedLength(remainingPattern))
             {
@@ -371,6 +374,7 @@ namespace Corvus.Globbing
                 for (int i = 0; i < requiredMatchPosition; i++)
                 {
                     char currentChar = value[i];
+                    // If we hit a path separator, we fail to match as the wildcard must be limited to a single path segment.
                     if (GlobTokenizer.IsPathSeparatorChar(currentChar))
                     {
                         tokensConsumed = 0;
@@ -379,6 +383,7 @@ namespace Corvus.Globbing
                     }
                 }
 
+                // Match the remaining pattern.
                 if (Match(glob, remainingPattern, value[requiredMatchPosition..], comparisonType, out int remainingMatched, out int remainingConsumed))
                 {
                     charactersMatched = requiredMatchPosition + remainingMatched;
@@ -406,8 +411,8 @@ namespace Corvus.Globbing
                 maxPos = maxPos - remainingMatchesMinLength + 1;
             }
 
-            // Run through the remaining characters until we find either a path separator character (which case we are no longer valid)
-            // (or we get a complete match for the remaining parts of the glob pattern
+            // Run through the remaining characters until we find either a path separator character (in which case we are no longer valid)
+            // or we get a complete match for the remaining parts of the glob pattern
             for (int i = 0; i <= maxPos; i++)
             {
                 bool isMatch = Match(glob, remainingPattern, value[i..], comparisonType, out int remainingMatched, out int remainingTokensConsumed);
