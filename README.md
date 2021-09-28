@@ -23,13 +23,13 @@ Dotnet.Glob offers better raw performance with a pre-compiled and cached glob us
 The simplest case just requires you to pass the glob and the candidate path to match.
 
 ```csharp
-bool isMatch = Glob.Match("path/*atstand", "PATH/fooatstand"); 
+bool isMatch = Glob.Match("path/*atstand", "path/fooatstand"); 
 ```
 
 We support all the standard string-comparison types. The default is `StringComparison.Ordinal` (i.e. case sensitive), but you could do a case insensitive match:
 
 ```csharp
-bool isMatch = Glob.Match("path/*atstand", "path/fooatstand", StringComparison.OrdinalIgnoreCase); 
+bool isMatch = Glob.Match("path/*atstand", "PATH/fooatstand", StringComparison.OrdinalIgnoreCase); 
 ```
 
 If you want to hold on to the tokenized glob and match against a number of paths, you can stack allocate a tokenized glob array, and reuse it:
