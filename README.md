@@ -39,7 +39,7 @@ string pattern = "path/*atstand";
 
 // There can't be more tokens than there are characters the glob pattern, so we allocate an array at least that long.
 Span<GlobToken> tokenizedGlob = stackalloc GlobToken[pattern.Length];
-int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(this.Pattern, ref tokenizedGlob);
+int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(pattern, ref tokenizedGlob);
 // And then slice off the number of tokens we actually used
 ReadOnlySpan<GlobToken> glob = tokenizedGlob.Slice(0, tokenCount);
 
@@ -53,23 +53,25 @@ For very long potential globs, you could fall back to the `ArrayPool` allocation
 // Pick a token array length threshold
 int MaxGlobTokenArrayLength = 1024;
 
+string pattern = "path/*atstand";
+
 // There can't be more tokens than there are characters the glob.
 GlobToken[] globTokenArray = Array.Empty<GlobToken>();
 Span<GlobToken> globTokens = stackalloc GlobToken[0];
 
-if (glob.Length > MaxGlobTokenArrayLength)
+if (pattern.Length > MaxGlobTokenArrayLength)
 {
-    globTokenArray = ArrayPool<GlobToken>.Shared.Rent(glob.Length);
+    globTokenArray = ArrayPool<GlobToken>.Shared.Rent(pattern.Length);
     globTokens = globTokenArray.AsSpan();
 }
 else
 {
-    globTokens = stackalloc GlobToken[glob.Length];
+    globTokens = stackalloc GlobToken[pattern.Length];
 }
 
 try
 {
-    int tokenCount = GlobTokenizer.Tokenize(glob, ref globTokens);
+    int tokenCount = GlobTokenizer.Tokenize(pattern, ref globTokens);
     ReadOnlySpan<GlobToken> tokenizedGlob = globTokens.Slice(0, tokenCount);
 
     // Do your matching here...
@@ -78,7 +80,7 @@ try
 }
 finally
 {
-    if (glob.Length > MaxGlobTokenArrayLength)
+    if (pattern.Length > MaxGlobTokenArrayLength)
     {
         ArrayPool<GlobToken>.Shared.Return(globTokenArray);
     }
