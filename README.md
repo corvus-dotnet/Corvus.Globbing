@@ -75,8 +75,8 @@ try
     ReadOnlySpan<GlobToken> tokenizedGlob = globTokens.Slice(0, tokenCount);
 
     // Do your matching here...
-    bool firstMatch = Glob.Match(pattern, glob, "path/fooatstand");
-    bool secondMatch = Glob.Match(pattern, glob, "badpath/fooatstand");
+    bool firstMatch = Glob.Match(pattern, tokenizedGlob, "path/fooatstand");
+    bool secondMatch = Glob.Match(pattern, tokenizedGlob, "badpath/fooatstand");
 }
 finally
 {
