@@ -91,7 +91,7 @@ finally
 
 | Wildcard | Description                                                                  | Example     | Matches                                 | Does not match              |
 |----------|------------------------------------------------------------------------------|-------------|-----------------------------------------|-----------------------------|
-| *        | matches any number of any characters including none                          | Law*        | Law, Laws, or Lawyer                    | GrokLaw, La, or aw          |
+| *        | matches any number of any characters including none                          | Law*        | Law, Laws, or Lawyer                    | GrokLaw, La, Law/foo or aw          |
 |          |                                                                              | \*Law\*     | Law, GrokLaw, or Lawyer.                | La, or aw                   |
 | **       | matches any number of path segments                                          | \*\*/Law*   | foo/bar/Law, bar/baz/bat/Law, or Law    | Law/foo                     |
 | ?        | matches any single character                                                 | ?at         | Cat, cat, Bat or bat                    | at                          |
