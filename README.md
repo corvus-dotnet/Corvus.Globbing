@@ -85,20 +85,20 @@ finally
 
 ## Supported patterns
 
-| Pattern   | Example match                     | Description                                               |
-|-----------|-----------------------------------|-----------------------------------------------------------|
-| / or \    | foo/bar => foo/bar                | Matches a path separator                                  |
-| literal   | foo => foo                        | Matches any literal sequence of characters                |
-| ?         | path/?foo => path/Afoo            | Matches any single character                              |
-| *         | path/*foo => path/somefoo         | Matches any sequence of characters within a path segment  |
-| **         | path/**/foo => path/some/sub/foo | Matches any number of path segments                       |
-| [a-z]     | path/[e-l]foo => path/gfoo        | Matches a single character within the given range         |
-| [0-9]     | path/[3-5]foo => path/3foo        | Matches a single numeric digit within the given range     |
-| [!a-z]    | path/[!e-l]foo => path/afoo       | Matches a single character not within the given range     |
-| [!0-9]    | path/[!3-5] => path/1foo          | Matches a single numeric digit not within the given range |
-| [abcz]    | path/[verity]foo => path/vfoo     | Matches a single character within the given set           |
-| [!abcz]   | path/[!verity]foo => path/afoo    | Matches a single character not within the given set       |
-   
+(Derived from [Wikipedia](https://en.wikipedia.org/wiki/Glob_(programming)#Syntax))
+
+| Wildcard | Description                                                                  | Example     | Matches                                 | Does not match              |
+|----------|------------------------------------------------------------------------------|-------------|-----------------------------------------|-----------------------------|
+| *        | matches any number of any characters including none                          | Law*        | Law, Laws, or Lawyer                    | GrokLaw, La, or aw          |
+|          |                                                                              | \*Law\*     | Law, GrokLaw, or Lawyer.                | La, or aw                   |
+| **       | matches any number of path segments                                          | \*\*/Law*   | foo/bar/Law, bar/baz/bat/Law, or Law    | Law/foo                     |
+| ?        | matches any single character                                                 | ?at         | Cat, cat, Bat or bat                    | at                          |
+| [abc]    | matches one character given in the bracket                                   | [CB]at      | Cat or Bat                              | cat, bat or CBat            |
+| [a-z]    | matches one character from the (locale-dependent) range given in the bracket | Letter[0-9] | Letter0, Letter1, Letter2 up to Letter9 | Letters, Letter or Letter10 |
+| [!abc]   | matches one character that is not given in the bracket                | [!C]at       | Bat, bat, or cat                                         | Cat                                   |
+| [!a-z]   | matches one character that is not from the range given in the bracket | Letter[!3-5] | Letter1, Letter2, Letter6 up to Letter9 and Letterx etc. | Letter3, Letter4, Letter5 or Letterxx |
+
+
 ## Benchmarks
 
 We have used Benchmark Dotnet to compare the performance with raw RegEx and DotNet.Glob. This represents a current example run.
