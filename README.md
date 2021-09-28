@@ -87,6 +87,7 @@ finally
 
 | Pattern   | Example match                     | Description                                               |
 |-----------|-----------------------------------|-----------------------------------------------------------|
+| / or \    | foo/bar => foo/bar                | Matches a path separator                                  |
 | literal   | foo => foo                        | Matches any literal sequence of characters                |
 | ?         | path/?foo => path/Afoo            | Matches any single character                              |
 | *         | path/*foo => path/somefoo         | Matches any sequence of characters within a path segment  |
