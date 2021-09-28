@@ -16,12 +16,20 @@ Our motivation for this came when "link stripping" documents to be returned from
 
 We also want to minimize allocations on the hot-path of a request handler. 
 
+Dotnet.Glob offers better raw performance with a pre-compiled and cached glob used many times (at the expense of some heap allocation per glob), but Corvus.Globbing offers better performance when compiling and using a glob transiently against ~50 paths or fewer, with zero allocations.
+
 ## Usage
 
 The simplest case just requires you to pass the glob and the candidate path to match.
 
 ```csharp
 bool isMatch = Glob.Match("path/*atstand", "path/fooatstand"); 
+```
+
+We support all the standard string-comparison types. The default is `StringComparison.Ordinal` (i.e. case sensitive), but you could do a case insensitive match:
+
+```csharp
+bool isMatch = Glob.Match("path/*atstand", "PATH/fooatstand", StringComparison.OrdinalIgnoreCase); 
 ```
 
 If you want to hold on to the tokenized glob and match against a number of paths, you can stack allocate a tokenized glob array, and reuse it:
@@ -31,7 +39,7 @@ string pattern = "path/*atstand";
 
 // There can't be more tokens than there are characters the glob pattern, so we allocate an array at least that long.
 Span<GlobToken> tokenizedGlob = stackalloc GlobToken[pattern.Length];
-int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(this.Pattern, ref tokenizedGlob);
+int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(pattern, ref tokenizedGlob);
 // And then slice off the number of tokens we actually used
 ReadOnlySpan<GlobToken> glob = tokenizedGlob.Slice(0, tokenCount);
 
@@ -45,37 +53,55 @@ For very long potential globs, you could fall back to the `ArrayPool` allocation
 // Pick a token array length threshold
 int MaxGlobTokenArrayLength = 1024;
 
+string pattern = "path/*atstand";
+
 // There can't be more tokens than there are characters the glob.
 GlobToken[] globTokenArray = Array.Empty<GlobToken>();
 Span<GlobToken> globTokens = stackalloc GlobToken[0];
 
-if (glob.Length > MaxGlobTokenArrayLength)
+if (pattern.Length > MaxGlobTokenArrayLength)
 {
-    globTokenArray = ArrayPool<GlobToken>.Shared.Rent(glob.Length);
+    globTokenArray = ArrayPool<GlobToken>.Shared.Rent(pattern.Length);
     globTokens = globTokenArray.AsSpan();
 }
 else
 {
-    globTokens = stackalloc GlobToken[glob.Length];
+    globTokens = stackalloc GlobToken[pattern.Length];
 }
 
 try
 {
-    int tokenCount = GlobTokenizer.Tokenize(glob, ref globTokens);
+    int tokenCount = GlobTokenizer.Tokenize(pattern, ref globTokens);
     ReadOnlySpan<GlobToken> tokenizedGlob = globTokens.Slice(0, tokenCount);
 
     // Do your matching here...
-    bool firstMatch = Glob.Match(pattern, glob, "path/fooatstand");
-    bool secondMatch = Glob.Match(pattern, glob, "badpath/fooatstand");
+    bool firstMatch = Glob.Match(pattern, tokenizedGlob, "path/fooatstand");
+    bool secondMatch = Glob.Match(pattern, tokenizedGlob, "badpath/fooatstand");
 }
 finally
 {
-    if (glob.Length > MaxGlobTokenArrayLength)
+    if (pattern.Length > MaxGlobTokenArrayLength)
     {
         ArrayPool<GlobToken>.Shared.Return(globTokenArray);
     }
 }
 ```
+
+## Supported patterns
+
+(Derived from [Wikipedia](https://en.wikipedia.org/wiki/Glob_(programming)#Syntax))
+
+| Wildcard | Description                                                                  | Example     | Matches                                 | Does not match              |
+|----------|------------------------------------------------------------------------------|-------------|-----------------------------------------|-----------------------------|
+| *        | matches any number of any characters including none                          | Law*        | Law, Laws, or Lawyer                    | GrokLaw, La, Law/foo or aw          |
+|          |                                                                              | \*Law\*     | Law, GrokLaw, or Lawyer.                | La, or aw                   |
+| **       | matches any number of path segments                                          | \*\*/Law*   | foo/bar/Law, bar/baz/bat/Law, or Law    | Law/foo                     |
+| ?        | matches any single character                                                 | ?at         | Cat, cat, Bat or bat                    | at                          |
+| [abc]    | matches one character given in the bracket                                   | [CB]at      | Cat or Bat                              | cat, bat or CBat            |
+| [a-z]    | matches one character from the (locale-dependent) range given in the bracket | Letter[0-9] | Letter0, Letter1, Letter2 up to Letter9 | Letters, Letter or Letter10 |
+| [!abc]   | matches one character that is not given in the bracket                | [!C]at       | Bat, bat, or cat                                         | Cat                                   |
+| [!a-z]   | matches one character that is not from the range given in the bracket | Letter[!3-5] | Letter1, Letter2, Letter6 up to Letter9 and Letterx etc. | Letter3, Letter4, Letter5 or Letterxx |
+
 
 ## Benchmarks
 
