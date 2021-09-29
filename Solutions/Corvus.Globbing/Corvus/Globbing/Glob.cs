@@ -136,10 +136,6 @@ namespace Corvus.Globbing
                     return MatchCharacterList(glob, currentToken, value, comparisonType, true, out charactersMatched, out tokensConsumed);
                 case GlobTokenType.NegatedLetterRange:
                     return MatchLetterRange(glob, currentToken, value, comparisonType, true, out charactersMatched, out tokensConsumed);
-                case GlobTokenType.NegatedNumberRange:
-                    return MatchNumberRange(glob, currentToken, value, comparisonType, true, out charactersMatched, out tokensConsumed);
-                case GlobTokenType.NumberRange:
-                    return MatchNumberRange(glob, currentToken, value, comparisonType, false, out charactersMatched, out tokensConsumed);
                 default:
                     charactersMatched = 0;
                     tokensConsumed = 0;
@@ -374,6 +370,7 @@ namespace Corvus.Globbing
                 for (int i = 0; i < requiredMatchPosition; i++)
                 {
                     char currentChar = value[i];
+
                     // If we hit a path separator, we fail to match as the wildcard must be limited to a single path segment.
                     if (GlobTokenizer.IsPathSeparatorChar(currentChar))
                     {
@@ -463,12 +460,6 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchNumberRange(ReadOnlySpan<char> glob, GlobToken currentToken, ReadOnlySpan<char> value, StringComparison comparisonType, bool isNegated, out int charactersMatched, out int tokensConsumed)
-        {
-            return MatchLetterRange(glob, currentToken, value, comparisonType, isNegated, out charactersMatched, out tokensConsumed);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool MatchLiteral(ReadOnlySpan<char> glob, GlobToken currentToken, ReadOnlySpan<char> value, StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
         {
             int length = currentToken.Length;
@@ -544,10 +535,8 @@ namespace Corvus.Globbing
             else
             {
                 ReadOnlySpan<char> currentValue = value.Slice(0, 1);
-                ReadOnlySpan<char> startCharacter = glob.Slice(currentToken.Start, 1);
-                ReadOnlySpan<char> endCharacter = glob.Slice(currentToken.End, 1);
 
-                if (currentValue.CompareTo(startCharacter, comparisonType) >= 0 && currentValue.CompareTo(endCharacter, comparisonType) <= 0)
+                if (currentValue.CompareTo(glob.Slice(currentToken.Start, 1), comparisonType) >= 0 && currentValue.CompareTo(glob.Slice(currentToken.End, 1), comparisonType) <= 0)
                 {
                     if (isNegated)
                     {
@@ -665,14 +654,12 @@ namespace Corvus.Globbing
         {
             return token.Type switch
             {
+                GlobTokenType.Literal => token.Length,
                 GlobTokenType.AnyCharacter => 1,
                 GlobTokenType.CharacterList => 1,
                 GlobTokenType.LetterRange => 1,
-                GlobTokenType.Literal => token.Length,
                 GlobTokenType.NegatedCharacterList => 1,
                 GlobTokenType.NegatedLetterRange => 1,
-                GlobTokenType.NegatedNumberRange => 1,
-                GlobTokenType.NumberRange => 1,
                 GlobTokenType.PathSeparator => 1,
                 _ => 0,
             };
@@ -689,20 +676,9 @@ namespace Corvus.Globbing
             {
                 GlobToken token = tokenizedGlob[startIndex];
 
-                // If this is a fixed length token...
-                if (MatchesFixedLength(token))
-                {
-                    // ...just add the length of the token, and advance to the next token.
-                    accumulator += FixedLengthFor(token);
-                    ++startIndex;
-                }
-                else
-                {
-                    // otherwise, perform a sum over the remaining elements, and then drop out
-                    // (as we will have visited all the elements by the end of this calculation).
-                    accumulator += SumMatchesMinLength(tokenizedGlob[(startIndex + 1) ..]);
-                    break;
-                }
+                // ...just add the length of the token, and advance to the next token.
+                accumulator += FixedLengthFor(token);
+                ++startIndex;
             }
 
             return accumulator;
@@ -733,11 +709,7 @@ namespace Corvus.Globbing
                 GlobTokenType.Literal => true,
                 GlobTokenType.NegatedCharacterList => true,
                 GlobTokenType.NegatedLetterRange => true,
-                GlobTokenType.NegatedNumberRange => true,
-                GlobTokenType.NumberRange => true,
                 GlobTokenType.PathSeparator => true,
-                GlobTokenType.Wildcard => false,
-                GlobTokenType.WildcardDirectory => false,
                 _ => false,
             };
         }

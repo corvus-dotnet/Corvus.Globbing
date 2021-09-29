@@ -40,16 +40,6 @@ namespace Corvus.Globbing
         Literal,
 
         /// <summary>
-        /// Any in a range of numeric characters [0-9].
-        /// </summary>
-        NumberRange,
-
-        /// <summary>
-        /// Not any in a range of numeric characters [0-9].
-        /// </summary>
-        NegatedNumberRange,
-
-        /// <summary>
         /// A path separator token (/ or \).
         /// </summary>
         PathSeparator,

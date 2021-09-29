@@ -122,7 +122,6 @@ namespace Corvus.Globbing
         private static GlobToken ReadRangeOrListToken(ref GlobReader reader)
         {
             bool isNegated = false;
-            bool isNumberRange = false;
             bool isLetterRange = false;
             bool isCharList = false;
             if (reader.PeekChar() == GlobConstants.Exclamation)
@@ -146,15 +145,7 @@ namespace Corvus.Globbing
                 if (nextChar == GlobConstants.Dash)
                 {
                     // The character was a dash, so this is a character range of either
-                    // letters or numbers, depending on the identify of the current character.
-                    if (char.IsLetter(reader.CurrentChar))
-                    {
-                        isLetterRange = true;
-                    }
-                    else
-                    {
-                        isNumberRange = true;
-                    }
+                    isLetterRange = true;
                 }
                 else
                 {
@@ -174,7 +165,7 @@ namespace Corvus.Globbing
                 startIndex = reader.CurrentIndex;
             }
 
-            if (isLetterRange || isNumberRange)
+            if (isLetterRange)
             {
                 // skip over the dash char
                 reader.ReadChar();
@@ -202,12 +193,8 @@ namespace Corvus.Globbing
             {
                 return new GlobToken(startIndex, reader.CurrentIndex - 1, isNegated ? GlobTokenType.NegatedCharacterList : GlobTokenType.CharacterList);
             }
-            else if (isLetterRange)
-            {
-                return new GlobToken(startIndex, reader.CurrentIndex - 1, isNegated ? GlobTokenType.NegatedLetterRange : GlobTokenType.LetterRange);
-            }
 
-            return new GlobToken(startIndex, reader.CurrentIndex - 1, isNegated ? GlobTokenType.NegatedNumberRange : GlobTokenType.NumberRange);
+            return new GlobToken(startIndex, reader.CurrentIndex - 1, isNegated ? GlobTokenType.NegatedLetterRange : GlobTokenType.LetterRange);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
