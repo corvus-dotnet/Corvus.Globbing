@@ -83,22 +83,81 @@ namespace Corvus.Globbing
             int valueCharsRead = 0;
             int tokenIndex = 0;
 
-            while (tokenIndex < tokenizedGlob.Length)
+            if (comparisonType == StringComparison.Ordinal)
             {
-                if (!Match(glob, tokenizedGlob, tokenIndex, value[valueCharsRead..], comparisonType, out int internalCharactersMatched, out int internalTokensConsumed))
+                while (tokenIndex < tokenizedGlob.Length)
                 {
-                    charactersMatched = 0;
-                    tokensConsumed = 0;
-                    return false;
-                }
+                    if (!MatchOrdinal(glob, tokenizedGlob, tokenIndex, value[valueCharsRead..], out int internalCharactersMatched, out int internalTokensConsumed))
+                    {
+                        charactersMatched = 0;
+                        tokensConsumed = 0;
+                        return false;
+                    }
 
-                valueCharsRead += internalCharactersMatched;
-                tokenIndex += internalTokensConsumed;
+                    valueCharsRead += internalCharactersMatched;
+                    tokenIndex += internalTokensConsumed;
+                }
+            }
+            else
+            {
+                while (tokenIndex < tokenizedGlob.Length)
+                {
+                    if (!Match(glob, tokenizedGlob, tokenIndex, value[valueCharsRead..], comparisonType, out int internalCharactersMatched, out int internalTokensConsumed))
+                    {
+                        charactersMatched = 0;
+                        tokensConsumed = 0;
+                        return false;
+                    }
+
+                    valueCharsRead += internalCharactersMatched;
+                    tokenIndex += internalTokensConsumed;
+                }
             }
 
             charactersMatched = valueCharsRead;
             tokensConsumed = tokenIndex;
             return true;
+        }
+
+        /// <summary>
+        /// Matches a particular token against an input span.
+        /// </summary>
+        /// <param name="glob">The glob to match.</param>
+        /// <param name="tokenizedGlob">The tokenized glob to match.</param>
+        /// <param name="tokenIndex">The current token index.</param>
+        /// <param name="value">The span of characters against which to match the token.</param>
+        /// <param name="charactersMatched">The number of characters matched the span.</param>
+        /// <param name="tokensConsumed">The number of tokens consumed.</param>
+        /// <returns><see langword="true"/> if the glob matched any number of characters from the start of the input value, otherwise <see langword="false"/>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool MatchOrdinal(ReadOnlySpan<char> glob, ReadOnlySpan<GlobToken> tokenizedGlob, int tokenIndex, ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
+        {
+            GlobToken currentToken = tokenizedGlob[tokenIndex];
+            switch (currentToken.Type)
+            {
+                case GlobTokenType.Literal:
+                    return MatchLiteralOrdinal(glob, currentToken, value, out charactersMatched, out tokensConsumed);
+                case GlobTokenType.PathSeparator:
+                    return MatchPathSeparator(value, out charactersMatched, out tokensConsumed);
+                case GlobTokenType.Wildcard:
+                    return MatchWildcard(glob, tokenizedGlob, tokenIndex, value, StringComparison.Ordinal, out charactersMatched, out tokensConsumed);
+                case GlobTokenType.WildcardDirectory:
+                    return MatchWildcardDirectory(glob, tokenizedGlob, tokenIndex, value, StringComparison.Ordinal, out charactersMatched, out tokensConsumed);
+                case GlobTokenType.AnyCharacter:
+                    return MatchAnyCharacter(value, out charactersMatched, out tokensConsumed);
+                case GlobTokenType.CharacterList:
+                    return MatchCharacterListOrdinal(glob, currentToken, value, false, out charactersMatched, out tokensConsumed);
+                case GlobTokenType.LetterRange:
+                    return MatchLetterRangeOrdinal(glob, currentToken, value, false, out charactersMatched, out tokensConsumed);
+                case GlobTokenType.NegatedCharacterList:
+                    return MatchCharacterListOrdinal(glob, currentToken, value, true, out charactersMatched, out tokensConsumed);
+                case GlobTokenType.NegatedLetterRange:
+                    return MatchLetterRangeOrdinal(glob, currentToken, value, true, out charactersMatched, out tokensConsumed);
+                default:
+                    charactersMatched = 0;
+                    tokensConsumed = 0;
+                    return false;
+            }
         }
 
         /// <summary>
@@ -460,6 +519,32 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool MatchLiteralOrdinal(ReadOnlySpan<char> glob, GlobToken currentToken, ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
+        {
+            int length = currentToken.Length;
+            if (value.Length < currentToken.Length)
+            {
+                charactersMatched = 0;
+                tokensConsumed = 0;
+                return false;
+            }
+
+            for (int i = currentToken.Start, j = 0; i <= currentToken.End; ++i, ++j)
+            {
+                if (value[j] != glob[i])
+                {
+                    charactersMatched = 0;
+                    tokensConsumed = 0;
+                    return false;
+                }
+            }
+
+            charactersMatched = length;
+            tokensConsumed = 1;
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool MatchLiteral(ReadOnlySpan<char> glob, GlobToken currentToken, ReadOnlySpan<char> value, StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
         {
             int length = currentToken.Length;
@@ -496,6 +581,50 @@ namespace Corvus.Globbing
             charactersMatched = length;
             tokensConsumed = 1;
             return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool MatchLetterRangeOrdinal(ReadOnlySpan<char> glob, GlobToken currentToken, ReadOnlySpan<char> value, bool isNegated, out int charactersMatched, out int tokensConsumed)
+        {
+            if (value.Length == 0)
+            {
+                if (isNegated)
+                {
+                    charactersMatched = 1;
+                    tokensConsumed = 1;
+                    return true;
+                }
+
+                charactersMatched = 0;
+                tokensConsumed = 0;
+                return false;
+            }
+
+            char currentChar = value[0];
+            if (currentChar >= glob[currentToken.Start] && currentChar <= glob[currentToken.End])
+            {
+                if (isNegated)
+                {
+                    charactersMatched = 0;
+                    tokensConsumed = 0;
+                    return false;
+                }
+
+                charactersMatched = 1;
+                tokensConsumed = 1;
+                return true;
+            }
+
+            if (isNegated)
+            {
+                charactersMatched = 1;
+                tokensConsumed = 1;
+                return true;
+            }
+
+            charactersMatched = 0;
+            tokensConsumed = 0;
+            return false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -537,6 +666,53 @@ namespace Corvus.Globbing
                 ReadOnlySpan<char> currentValue = value.Slice(0, 1);
 
                 if (currentValue.CompareTo(glob.Slice(currentToken.Start, 1), comparisonType) >= 0 && currentValue.CompareTo(glob.Slice(currentToken.End, 1), comparisonType) <= 0)
+                {
+                    if (isNegated)
+                    {
+                        charactersMatched = 0;
+                        tokensConsumed = 0;
+                        return false;
+                    }
+
+                    charactersMatched = 1;
+                    tokensConsumed = 1;
+                    return true;
+                }
+            }
+
+            if (isNegated)
+            {
+                charactersMatched = 1;
+                tokensConsumed = 1;
+                return true;
+            }
+
+            charactersMatched = 0;
+            tokensConsumed = 0;
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool MatchCharacterListOrdinal(ReadOnlySpan<char> glob, GlobToken currentToken, ReadOnlySpan<char> value, bool isNegated, out int charactersMatched, out int tokensConsumed)
+        {
+            if (value.Length == 0)
+            {
+                if (isNegated)
+                {
+                    charactersMatched = 1;
+                    tokensConsumed = 1;
+                    return true;
+                }
+
+                charactersMatched = 0;
+                tokensConsumed = 0;
+                return false;
+            }
+
+            char currentValue = value[0];
+            for (int i = currentToken.Start; i <= currentToken.End; ++i)
+            {
+                if (currentValue == glob[i])
                 {
                     if (isNegated)
                     {
