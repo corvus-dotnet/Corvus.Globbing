@@ -555,27 +555,12 @@ namespace Corvus.Globbing
                 return false;
             }
 
-            if (comparisonType == StringComparison.Ordinal)
+            ReadOnlySpan<char> literalToMatch = glob.Slice(currentToken.Start, length);
+            if (!value.StartsWith(literalToMatch, comparisonType))
             {
-                for (int i = currentToken.Start, j = 0; i <= currentToken.End; ++i, ++j)
-                {
-                    if (value[j] != glob[i])
-                    {
-                        charactersMatched = 0;
-                        tokensConsumed = 0;
-                        return false;
-                    }
-                }
-            }
-            else
-            {
-                ReadOnlySpan<char> literalToMatch = glob.Slice(currentToken.Start, length);
-                if (!value.StartsWith(literalToMatch, comparisonType))
-                {
-                    charactersMatched = 0;
-                    tokensConsumed = 0;
-                    return false;
-                }
+                charactersMatched = 0;
+                tokensConsumed = 0;
+                return false;
             }
 
             charactersMatched = length;
@@ -644,40 +629,20 @@ namespace Corvus.Globbing
                 return false;
             }
 
-            if (comparisonType == StringComparison.Ordinal)
+            ReadOnlySpan<char> currentValue = value.Slice(0, 1);
+
+            if (currentValue.CompareTo(glob.Slice(currentToken.Start, 1), comparisonType) >= 0 && currentValue.CompareTo(glob.Slice(currentToken.End, 1), comparisonType) <= 0)
             {
-                char currentChar = value[0];
-                if (currentChar >= glob[currentToken.Start] && currentChar <= glob[currentToken.End])
+                if (isNegated)
                 {
-                    if (isNegated)
-                    {
-                        charactersMatched = 0;
-                        tokensConsumed = 0;
-                        return false;
-                    }
-
-                    charactersMatched = 1;
-                    tokensConsumed = 1;
-                    return true;
+                    charactersMatched = 0;
+                    tokensConsumed = 0;
+                    return false;
                 }
-            }
-            else
-            {
-                ReadOnlySpan<char> currentValue = value.Slice(0, 1);
 
-                if (currentValue.CompareTo(glob.Slice(currentToken.Start, 1), comparisonType) >= 0 && currentValue.CompareTo(glob.Slice(currentToken.End, 1), comparisonType) <= 0)
-                {
-                    if (isNegated)
-                    {
-                        charactersMatched = 0;
-                        tokensConsumed = 0;
-                        return false;
-                    }
-
-                    charactersMatched = 1;
-                    tokensConsumed = 1;
-                    return true;
-                }
+                charactersMatched = 1;
+                tokensConsumed = 1;
+                return true;
             }
 
             if (isNegated)
@@ -756,44 +721,21 @@ namespace Corvus.Globbing
                 return false;
             }
 
-            if (comparisonType == StringComparison.Ordinal)
+            ReadOnlySpan<char> currentValue = value.Slice(0, 1);
+            for (int i = currentToken.Start; i <= currentToken.End; ++i)
             {
-                char currentValue = value[0];
-                for (int i = currentToken.Start; i <= currentToken.End; ++i)
+                if (currentValue.Equals(glob.Slice(i, 1), comparisonType))
                 {
-                    if (currentValue == glob[i])
+                    if (isNegated)
                     {
-                        if (isNegated)
-                        {
-                            charactersMatched = 0;
-                            tokensConsumed = 0;
-                            return false;
-                        }
-
-                        charactersMatched = 1;
-                        tokensConsumed = 1;
-                        return true;
+                        charactersMatched = 0;
+                        tokensConsumed = 0;
+                        return false;
                     }
-                }
-            }
-            else
-            {
-                ReadOnlySpan<char> currentValue = value.Slice(0, 1);
-                for (int i = currentToken.Start; i <= currentToken.End; ++i)
-                {
-                    if (currentValue.Equals(glob.Slice(i, 1), comparisonType))
-                    {
-                        if (isNegated)
-                        {
-                            charactersMatched = 0;
-                            tokensConsumed = 0;
-                            return false;
-                        }
 
-                        charactersMatched = 1;
-                        tokensConsumed = 1;
-                        return true;
-                    }
+                    charactersMatched = 1;
+                    tokensConsumed = 1;
+                    return true;
                 }
             }
 
