@@ -3,7 +3,7 @@ A zero allocation globbing library
 
 ## Purpose
 
-We built this to provide a zero-allocation path globbing library with performance comparable to (or better than) https://github.com/dazinator/DotNet.Glob, or raw RegEx when running under dotnet50.
+We built this to provide a zero-allocation globbing library with performance comparable to (or better than) https://github.com/dazinator/DotNet.Glob and raw Regular Expressions, when running under dotnet50.
 
 ## Use cases
 
@@ -16,11 +16,11 @@ Our motivation for this came when "link stripping" documents to be returned from
 
 We also want to minimize allocations on the hot-path of a request handler. 
 
-Dotnet.Glob offers better raw performance with a pre-compiled and cached glob used many times (at the expense of some heap allocation per glob), but Corvus.Globbing offers better performance when compiling and using a glob transiently against ~50 paths or fewer, with zero allocations.
+[Dotnet.Glob](https://github.com/dazinator/DotNet.Glob) offers better raw performance with a pre-compiled and cached glob used many times (at the expense of some heap allocation per glob), but Corvus.Globbing offers better performance when compiling and using a glob transiently against ~50 paths or fewer, with zero allocations.
 
 ## Usage
 
-The simplest case just requires you to pass the glob and the candidate path to match.
+The simplest case just requires you to pass the glob and the candidate path to match. Note that it actually takes a `ReadonlySpan<char>` - to which strings are implicitly converted. 
 
 ```csharp
 bool isMatch = Glob.Match("path/*atstand", "path/fooatstand"); 
@@ -102,6 +102,9 @@ finally
 | [!abc]   | matches one character that is not given in the bracket                | [!C]at       | Bat, bat, or cat                                         | Cat                                   |
 | [!a-z]   | matches one character that is not from the range given in the bracket | Letter[!3-5] | Letter1, Letter2, Letter6 up to Letter9 and Letterx etc. | Letter3, Letter4, Letter5 or Letterxx |
 
+### Escaping special characters using `[]`
+
+The special characters `*`, `?`, `\`, `/`, `[` can be escaped by using the `[]` 'match one character given in the bracket' list - e.g. `[[]` matches the literal `[` and `[*]` matches the literal `*`.
 
 ## Benchmarks
 
