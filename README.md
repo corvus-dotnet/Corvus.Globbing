@@ -200,3 +200,7 @@ We have used Benchmark Dotnet to compare the performance with raw RegEx and DotN
 | **Compiled_Regex_IsMatch** |              **50** |      **p?th/a[e-g].txt** | **104,063.2 ns** | **1,841.14 ns** | **1,808.24 ns** | **103,641.9 ns** |  **1.00** | **4.6387** | **2.3193** | **0.1221** |  **19,799 B** |
 |     DotNetGlob_IsMatch |              50 |      p?th/a[e-g].txt |   1,158.9 ns |    23.10 ns |    21.61 ns |   1,162.9 ns |  0.01 | 0.3319 |      - |      - |   1,392 B |
 |     CorvusGlob_IsMatch |              50 |      p?th/a[e-g].txt |   1,663.3 ns |    13.55 ns |    12.01 ns |   1,661.0 ns |  0.02 |      - |      - |      - |         - |
+
+# Credits
+
+This library would not exist without [Dotnet Glob](https://github.com/dazinator/DotNet.Glob) - I've built the specs from its unit tests, and modelled the actual matching algorithms on the implementation in that library (although it is somewhat different in structure). The project has a "give back" mechanism so I've donated a small amount. You could consider doing so too.
