@@ -42,7 +42,7 @@ If you want to hold on to the tokenized glob and match against a number of paths
 ```csharp
 string pattern = "path/*atstand";
 
-// There can't be more tokens than there are characters the glob pattern, so we allocate an array at least that long.
+// There can't be more tokens than there are characters in the glob pattern, so we allocate an array at least that long.
 Span<GlobToken> tokenizedGlob = stackalloc GlobToken[pattern.Length];
 int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(pattern, ref tokenizedGlob);
 // And then slice off the number of tokens we actually used
