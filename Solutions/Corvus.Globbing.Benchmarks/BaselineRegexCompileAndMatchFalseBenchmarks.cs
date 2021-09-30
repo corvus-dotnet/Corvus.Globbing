@@ -17,7 +17,7 @@ namespace Corvus.Globbing.Benchmarks
     [MemoryDiagnoser]
     public class BaselineRegexCompileAndMatchFalseBenchmarks : BaseGlobBenchMark
     {
-        private const int MaxResults = 50;
+        private const int MaxResults = 10000;
 
         private string? pattern;
         private int? patternLength;
@@ -26,7 +26,7 @@ namespace Corvus.Globbing.Benchmarks
         /// <summary>
         /// Gets or sets the number of matches to apply.
         /// </summary>
-        [Params(1, MaxResults / 2, MaxResults)]
+        [Params(1, MaxResults)]
         public int NumberOfMatches { get; set; }
 
         /// <inheritdoc/>
