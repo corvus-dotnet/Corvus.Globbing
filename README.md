@@ -194,7 +194,7 @@ _(note that we have re-baselined on the Corvus implementation for ease of compar
 |     CorvusGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  92,326.72 ns | 1,832.623 ns | 1,714.237 ns |     1.00 |    0.00 |      - |      - |         - |
 
 
-## Match false
+### Match false
 |                 Method | NumberOfMatches |              Pattern |      Mean |    Error |   StdDev | Ratio | RatioSD | Allocated |
 |----------------------- |---------------- |--------------------- |----------:|---------:|---------:|------:|--------:|----------:|
 | **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [50]** | **446.86 μs** | **4.783 μs** | **3.994 μs** |  **4.74** |    **0.06** |         **-** |
@@ -213,7 +213,7 @@ _(note that we have re-baselined on the Corvus implementation for ease of compar
 |     DotNetGlob_IsMatch |           10000 |      p?th/a[e-g].txt | 116.95 μs | 1.689 μs | 1.659 μs |  1.23 |    0.02 |         - |
 |     CorvusGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  95.02 μs | 0.457 μs | 0.357 μs |  1.00 |    0.00 |         - |
 
-## Match true
+### Match true
 |                 Method | NumberOfMatches |              Pattern |      Mean |    Error |   StdDev | Ratio | RatioSD | Allocated |
 |----------------------- |---------------- |--------------------- |----------:|---------:|---------:|------:|--------:|----------:|
 | **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [50]** | **450.13 μs** | **2.709 μs** | **2.402 μs** |  **4.88** |    **0.08** |         **-** |
