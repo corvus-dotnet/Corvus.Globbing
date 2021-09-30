@@ -22,7 +22,6 @@ namespace Corvus.Globbing
         {
             this.text = text;
             this.currentIndex = -1;
-            this.CurrentChar = GlobConstants.NullCharacter;
         }
 
         /// <summary>
@@ -39,7 +38,7 @@ namespace Corvus.Globbing
         /// <summary>
         /// Gets the current character.
         /// </summary>
-        public char CurrentChar { get; private set; }
+        public char CurrentChar => this.text[this.currentIndex];
 
         /// <summary>
         /// Gets a value indicating whether we have reached the end of the string.
@@ -109,7 +108,6 @@ namespace Corvus.Globbing
             if (!this.IsAtEnd)
             {
                 this.currentIndex++;
-                this.CurrentChar = this.text[this.currentIndex];
                 return true;
             }
 
@@ -119,14 +117,9 @@ namespace Corvus.Globbing
         /// <summary>
         /// Peek the next character.
         /// </summary>
-        /// <returns>The next character, or the <see cref="GlobConstants.NullCharacter"/> if this would take us past the end of the string.</returns>
+        /// <returns>The next character.</returns>
         public char PeekChar()
         {
-            if (this.IsAtEnd)
-            {
-                return GlobConstants.NullCharacter;
-            }
-
             return this.text[this.currentIndex + 1];
         }
     }

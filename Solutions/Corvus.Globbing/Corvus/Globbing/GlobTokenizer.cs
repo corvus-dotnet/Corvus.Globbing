@@ -93,10 +93,10 @@ namespace Corvus.Globbing
         /// <param name="character">The character to test.</param>
         /// <returns><see langword="true"/> if the character is a path separator, otherwise <see langword="false"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsPathSeparatorChar(char character)
+        internal static bool IsPathSeparatorChar(in char character)
         {
-            return character == GlobConstants.PathSeparators[0] ||
-                   character == GlobConstants.PathSeparators[1];
+            return character == GlobConstants.PathSeparatorWindows ||
+                   character == GlobConstants.PathSeparatorUnix;
         }
 
         /// <summary>
@@ -105,17 +105,12 @@ namespace Corvus.Globbing
         /// <param name="character">The character to test.</param>
         /// <returns><see langword="true"/> if the character is a start-of-token character, otherwise <see langword="false"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsStartOfTokenChar(char character)
+        internal static bool IsStartOfTokenChar(in char character)
         {
-            foreach (char tokenCharacter in GlobConstants.StartOfTokenCharacters)
-            {
-                if (tokenCharacter == character)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return
+                character == GlobConstants.Star ||
+                character == GlobConstants.OpenSquareBracket ||
+                character == GlobConstants.QuestionMark;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -242,7 +237,7 @@ namespace Corvus.Globbing
         /// Reads a directory wildcard token where we have a leading path separator token.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static GlobToken ReadDirectoryWildcardToken(ref GlobReader reader, GlobToken leadingPathSeparatorToken)
+        private static GlobToken ReadDirectoryWildcardToken(ref GlobReader reader, in GlobToken leadingPathSeparatorToken)
         {
             // Read the second character in the directory wildcard
             reader.ReadChar();

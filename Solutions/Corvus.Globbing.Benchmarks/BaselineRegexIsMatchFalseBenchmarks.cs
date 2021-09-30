@@ -64,7 +64,7 @@ namespace Corvus.Globbing.Benchmarks
         /// Benchmark against a pre-compiled RegEx.
         /// </summary>
         /// <returns>True if it is a match.</returns>
-        [Benchmark(Baseline = true)]
+        [Benchmark]
         public bool Compiled_Regex_IsMatch()
         {
             bool result = false;
@@ -98,7 +98,7 @@ namespace Corvus.Globbing.Benchmarks
         /// Benchmark against a Corvus.Globbing glob.
         /// </summary>
         /// <returns>True if it is a match.</returns>
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public bool CorvusGlob_IsMatch()
         {
             bool result = false;

@@ -61,35 +61,18 @@ namespace Corvus.Globbing.Benchmarks
             }
         }
 
-        /////// <summary>
-        /////// Benchmark against the compiled RegEx.
-        /////// </summary>
-        /////// <returns>True if the benchmark passed.</returns>
-        ////[Benchmark(Baseline = true)]
-        ////public bool Compiled_Regex_IsMatch()
-        ////{
-        ////    bool result = false;
-        ////    for (int i = 0; i < this.NumberOfMatches; i++)
-        ////    {
-        ////        string? testString = this.TestStrings![i];
-        ////        result ^= this.compiledRegex!.IsMatch(testString);
-        ////    }
-
-        ////    return result;
-        ////}
-
         /// <summary>
-        /// Benchmark against the Dotnet.Glob.
+        /// Benchmark against the compiled RegEx.
         /// </summary>
         /// <returns>True if the benchmark passed.</returns>
         [Benchmark]
-        public bool DotNetGlob_IsMatch()
+        public bool Compiled_Regex_IsMatch()
         {
             bool result = false;
             for (int i = 0; i < this.NumberOfMatches; i++)
             {
                 string? testString = this.TestStrings![i];
-                result ^= this.dotnetGlob!.IsMatch(testString);
+                result ^= this.compiledRegex!.IsMatch(testString);
             }
 
             return result;
@@ -99,7 +82,7 @@ namespace Corvus.Globbing.Benchmarks
         /// Benchmark against an on-the-fly parsed Corvus.Globbing glob.
         /// </summary>
         /// <returns>True if it is a match.</returns>
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public bool CorvusGlob_IsMatch()
         {
             ReadOnlySpan<GlobToken> glob = this.corvusGlob;
@@ -115,19 +98,17 @@ namespace Corvus.Globbing.Benchmarks
         }
 
         /// <summary>
-        /// Benchmark against an on-the-fly parsed Corvus.Globbing glob.
+        /// Benchmark against the Dotnet.Glob.
         /// </summary>
-        /// <returns>True if it is a match.</returns>
+        /// <returns>True if the benchmark passed.</returns>
         [Benchmark]
-        public bool CorvusGlobWithWildcardOptimization_IsMatch()
+        public bool DotNetGlob_IsMatch()
         {
-            ReadOnlySpan<GlobToken> glob = this.corvusGlob;
-
             bool result = false;
             for (int i = 0; i < this.NumberOfMatches; i++)
             {
                 string? testString = this.TestStrings![i];
-                result ^= Corvus.Globbing.GlobWithWildcardOptimzation.Match(this.Pattern, glob, testString!);
+                result ^= this.dotnetGlob!.IsMatch(testString);
             }
 
             return result;

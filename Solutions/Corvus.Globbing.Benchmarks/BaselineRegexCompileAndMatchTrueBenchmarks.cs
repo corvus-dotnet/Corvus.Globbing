@@ -54,7 +54,7 @@ namespace Corvus.Globbing.Benchmarks
         /// Benchmark against the compiled RegEx.
         /// </summary>
         /// <returns>True if it is a match.</returns>
-        [Benchmark(Baseline = true)]
+        [Benchmark]
         public bool Compiled_Regex_IsMatch()
         {
             Regex? compiledRegex = this.CreateRegex(this.regexString!, true);
@@ -92,7 +92,7 @@ namespace Corvus.Globbing.Benchmarks
         /// Benchmark against an on-the-fly parsed Corvus.Globbing glob.
         /// </summary>
         /// <returns>True if it is a match.</returns>
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public bool CorvusGlob_IsMatch()
         {
             Span<Corvus.Globbing.GlobToken> tokenizedGlob = stackalloc Corvus.Globbing.GlobToken[this.patternLength!.Value];

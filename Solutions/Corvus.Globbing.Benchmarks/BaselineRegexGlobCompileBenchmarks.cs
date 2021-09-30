@@ -49,7 +49,7 @@ namespace Corvus.Globbing.Benchmarks
         /// Compile a regex.
         /// </summary>
         /// <returns>The generated <see cref="Regex"/>.</returns>
-        [Benchmark(Baseline = true)]
+        [Benchmark]
         public Regex New_Compiled_Regex_Glob()
         {
             var result = new Regex(this.regexString!, RegexOptions.Compiled | RegexOptions.Singleline);
@@ -71,7 +71,7 @@ namespace Corvus.Globbing.Benchmarks
         /// Parse a Corvus.Globbing glob.
         /// </summary>
         /// <returns>The number of tokens generated.</returns>
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public int New_Corvus_Glob()
         {
             Span<Corvus.Globbing.GlobToken> tokenizedGlob = stackalloc Corvus.Globbing.GlobToken[this.patternLength!.Value];

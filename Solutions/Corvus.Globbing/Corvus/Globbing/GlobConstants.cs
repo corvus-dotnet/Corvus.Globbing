@@ -45,18 +45,13 @@ namespace Corvus.Globbing
         public const char QuestionMark = '?';
 
         /// <summary>
-        /// Path separators.
+        /// Path separator (Windows).
         /// </summary>
-        public static readonly char[] PathSeparators = { '/', '\\' };
+        public const char PathSeparatorWindows = '\\';
 
         /// <summary>
-        /// Token start delimiters.
+        /// Path separator (Unix).
         /// </summary>
-        public static readonly char[] StartOfTokenCharacters = { Star, OpenSquareBracket, QuestionMark };
-
-        /// <summary>
-        /// Additional permitted characters.
-        /// </summary>
-        public static readonly char[] AllowedNonAlphanumericCharacters = { '.', ' ', '!', '#', '-', ';', '=', '@', '~', '_', ':' };
+        public const char PathSeparatorUnix = '/';
     }
 }
