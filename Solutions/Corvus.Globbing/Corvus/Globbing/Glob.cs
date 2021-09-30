@@ -249,7 +249,7 @@ namespace Corvus.Globbing
             }
 
             // If the remaining tokens are optional (i.e. consume a minimum of 0 tokens) then we must also match.
-            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1)..];
+            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1) ..];
             SumMatchesMinLength(remainingPattern, out bool isFixedLength, out int matchesMinLength);
             int remainingMinLength = remainingPattern.Length == 0 ? 0 : matchesMinLength;
             if (remainingMinLength == 0)
@@ -416,7 +416,7 @@ namespace Corvus.Globbing
             }
 
             // If the remaining tokens are optional (i.e. consume a minimum of 0 tokens) then we must also match.
-            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1)..];
+            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1) ..];
             SumMatchesMinLength(remainingPattern, out bool isFixedLength, out int matchesMinLength);
             int remainingMinLength = remainingPattern.Length == 0 ? 0 : matchesMinLength;
             if (remainingMinLength == 0)
@@ -572,7 +572,7 @@ namespace Corvus.Globbing
 
             // We are not the last token in the glob, and so we need to ensure that however much we consume, the remaining tokens also match.
             // First: does the rest of pattern match a fixed length, or variable length?
-            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1)..];
+            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1) ..];
             SumMatchesMinLength(remainingPattern, out bool isFixedLength, out int matchesMinLength);
             if (isFixedLength)
             {
@@ -694,7 +694,7 @@ namespace Corvus.Globbing
 
             // We are not the last token in the glob, and so we need to ensure that however much we consume, the remaining tokens also match.
             // First: does the rest of pattern match a fixed length, or variable length?
-            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1)..];
+            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1) ..];
             SumMatchesMinLength(remainingPattern, out bool isFixedLength, out int matchesMinLength);
             if (isFixedLength)
             {

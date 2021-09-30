@@ -25,13 +25,13 @@ namespace Corvus.Globbing.Steps
         [When(@"I compare the path ""(.*)"" to the glob ""(.*)"" with a case sensitive match")]
         public void WhenIMatchThePathToTheGlobCaseSensitive(string path, string glob)
         {
-            this.scenarioContext.Set(GlobWithWildcardOptimzation.Match(glob, path), ResultKey);
+            this.scenarioContext.Set(Glob.Match(glob, path), ResultKey);
         }
 
         [When(@"I compare the path ""(.*)"" to the glob ""(.*)"" with a case insensitive match")]
         public void WhenIMatchThePathToTheGlobCaseInsensitive(string path, string glob)
         {
-            this.scenarioContext.Set(GlobWithWildcardOptimzation.Match(glob, path, System.StringComparison.OrdinalIgnoreCase), ResultKey);
+            this.scenarioContext.Set(Glob.Match(glob, path, System.StringComparison.OrdinalIgnoreCase), ResultKey);
         }
 
         [Then(@"the result should be true")]
