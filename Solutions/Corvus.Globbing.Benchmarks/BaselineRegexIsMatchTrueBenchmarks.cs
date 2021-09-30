@@ -79,6 +79,23 @@ namespace Corvus.Globbing.Benchmarks
         }
 
         /// <summary>
+        /// Benchmark against the Dotnet.Glob.
+        /// </summary>
+        /// <returns>True if the benchmark passed.</returns>
+        [Benchmark]
+        public bool DotNetGlob_IsMatch()
+        {
+            bool result = false;
+            for (int i = 0; i < this.NumberOfMatches; i++)
+            {
+                string? testString = this.TestStrings![i];
+                result ^= this.dotnetGlob!.IsMatch(testString);
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Benchmark against an on-the-fly parsed Corvus.Globbing glob.
         /// </summary>
         /// <returns>True if it is a match.</returns>
@@ -92,23 +109,6 @@ namespace Corvus.Globbing.Benchmarks
             {
                 string? testString = this.TestStrings![i];
                 result ^= Corvus.Globbing.Glob.Match(this.Pattern, glob, testString!);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Benchmark against the Dotnet.Glob.
-        /// </summary>
-        /// <returns>True if the benchmark passed.</returns>
-        [Benchmark]
-        public bool DotNetGlob_IsMatch()
-        {
-            bool result = false;
-            for (int i = 0; i < this.NumberOfMatches; i++)
-            {
-                string? testString = this.TestStrings![i];
-                result ^= this.dotnetGlob!.IsMatch(testString);
             }
 
             return result;
