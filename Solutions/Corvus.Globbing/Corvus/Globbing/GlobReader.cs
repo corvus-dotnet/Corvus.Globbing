@@ -120,7 +120,7 @@ namespace Corvus.Globbing
         /// <returns>The next character.</returns>
         public char PeekChar()
         {
-            return this.text[this.currentIndex + 1];
+            return this.IsAtEnd ? GlobConstants.NullCharacter : this.text[this.currentIndex + 1];
         }
     }
 }
