@@ -35,9 +35,10 @@ namespace Corvus.Globbing.Benchmarks
 
         /// <inheritdoc/>
         [Params(
-            "p?th/a[e-g].txt",
-            "p?th/a[bcd]b[e-g].txt",
-            "p?th/a[bcd]b[e-g]a[1-4][!wxyz][!a-c][!1-3].txt")]
+            "p?th/**/a[bcd]b[e-g]a[1-4]*[!wxyz][!a-c][!1-3].txt")]
+        ////"p?th/a[e-g].txt",
+        ////"p?th/a[bcd]b[e-g].txt",
+        ////"p?th/a[bcd]b[e-g]a[1-4][!wxyz][!a-c][!1-3].txt")]
         public override string? Pattern
         {
             get
@@ -60,22 +61,22 @@ namespace Corvus.Globbing.Benchmarks
             }
         }
 
-        /// <summary>
-        /// Benchmark against the compiled RegEx.
-        /// </summary>
-        /// <returns>True if the benchmark passed.</returns>
-        [Benchmark(Baseline = true)]
-        public bool Compiled_Regex_IsMatch()
-        {
-            bool result = false;
-            for (int i = 0; i < this.NumberOfMatches; i++)
-            {
-                string? testString = this.TestStrings![i];
-                result ^= this.compiledRegex!.IsMatch(testString);
-            }
+        /////// <summary>
+        /////// Benchmark against the compiled RegEx.
+        /////// </summary>
+        /////// <returns>True if the benchmark passed.</returns>
+        ////[Benchmark(Baseline = true)]
+        ////public bool Compiled_Regex_IsMatch()
+        ////{
+        ////    bool result = false;
+        ////    for (int i = 0; i < this.NumberOfMatches; i++)
+        ////    {
+        ////        string? testString = this.TestStrings![i];
+        ////        result ^= this.compiledRegex!.IsMatch(testString);
+        ////    }
 
-            return result;
-        }
+        ////    return result;
+        ////}
 
         /// <summary>
         /// Benchmark against the Dotnet.Glob.
@@ -108,6 +109,25 @@ namespace Corvus.Globbing.Benchmarks
             {
                 string? testString = this.TestStrings![i];
                 result ^= Corvus.Globbing.Glob.Match(this.Pattern, glob, testString!);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Benchmark against an on-the-fly parsed Corvus.Globbing glob.
+        /// </summary>
+        /// <returns>True if it is a match.</returns>
+        [Benchmark]
+        public bool CorvusGlobWithWildcardOptimization_IsMatch()
+        {
+            ReadOnlySpan<GlobToken> glob = this.corvusGlob;
+
+            bool result = false;
+            for (int i = 0; i < this.NumberOfMatches; i++)
+            {
+                string? testString = this.TestStrings![i];
+                result ^= Corvus.Globbing.GlobWithWildcardOptimzation.Match(this.Pattern, glob, testString!);
             }
 
             return result;

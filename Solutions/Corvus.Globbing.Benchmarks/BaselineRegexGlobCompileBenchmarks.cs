@@ -25,6 +25,7 @@ namespace Corvus.Globbing.Benchmarks
 
         /// <inheritdoc/>
         [Params(
+            "p?th/**/a[bcd]b[e-g]a[1-4]*[!wxyz][!a-c][!1-3].txt",
             "p?th/a[e-g].txt",
             "p?th/a[bcd]b[e-g].txt",
             "p?th/a[bcd]b[e-g]a[1-4][!wxyz][!a-c][!1-3].txt")]
