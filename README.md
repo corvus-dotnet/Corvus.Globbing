@@ -21,8 +21,6 @@ We offer better raw matching performance (~10-30%) against a pre-tokenized glob 
 
 Our tokenization is also ~10x faster than [Dotnet.Glob](https://github.com/dazinator/DotNet.Glob) so it is significantly faster in the single use/throwaway case.
 
-This compilation overhead ceases to be significant at ~500 reuses of the tokenized glob, and then raw performance takes over as the differentiator.
-
 ## Usage
 
 The simplest case just requires you to pass the glob and the candidate path to match. Note that it actually takes a `ReadonlySpan<char>` - to which strings are implicitly converted. 
