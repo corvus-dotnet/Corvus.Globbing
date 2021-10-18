@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Corvus.Testing.SpecFlow.NUnit" Version="1.4.5" />
+    <PackageReference Include="Corvus.Testing.SpecFlow.NUnit" Version="1.4.6" />
     <PackageReference Include="System.Text.Encodings.Web" Version="5.0.1" />
     <PackageReference Include="Endjin.RecommendedPractices" Version="1.2.0">
       <PrivateAssets>all</PrivateAssets>
