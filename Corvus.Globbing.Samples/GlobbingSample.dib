@@ -1,0 +1,34 @@
+#!markdown
+
+## Glob - Sample Notebook
+
+#!markdown
+
+First, add a reference to the `Corvus.Globbing` NuGet package.
+
+#!csharp
+
+#r "nuget: Corvus.Globbing, 0.1.0"
+
+#!markdown
+
+Add using statement for `Corvus.Globbing` namespace
+
+#!csharp
+
+using Corvus.Globbing;
+
+#!markdown
+
+### `Match()`
+
+Matches a value against a glob
+
+#!markdown
+
+### 
+
+#!csharp
+
+bool isMatch = Glob.Match("path/*atstand", "path/fooatstand");
+return isMatch;
