@@ -23,9 +23,7 @@ namespace Corvus.Globbing.Benchmarks
         private Regex? compiledRegex;
         private DotNet.Globbing.Glob? dotnetGlob;
         private int? patternLength;
-#pragma warning disable SA1011 // Closing square brackets should be spaced correctly
         private GlobToken[]? corvusGlob;
-#pragma warning restore SA1011 // Closing square brackets should be spaced correctly
 
         /// <summary>
         /// Gets or sets the number of matches to perform.
@@ -54,8 +52,8 @@ namespace Corvus.Globbing.Benchmarks
                 this.compiledRegex = this.CreateRegex(this.dotnetGlob.Tokens, true);
 
                 Span<Corvus.Globbing.GlobToken> tokenizedGlob = stackalloc Corvus.Globbing.GlobToken[this.patternLength!.Value];
-                int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(this.Pattern, ref tokenizedGlob);
-                this.corvusGlob = tokenizedGlob.Slice(0, tokenCount).ToArray();
+                int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(this.Pattern, tokenizedGlob);
+                this.corvusGlob = tokenizedGlob[..tokenCount].ToArray();
                 this.InitialiseGlobTestData(value!, 0, MaxResults);
             }
         }

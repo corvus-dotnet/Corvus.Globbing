@@ -7,7 +7,7 @@ A zero allocation globbing library.
 
 ## Purpose
 
-We built this to provide a zero-allocation globbing library with performance comparable to (or better than) https://github.com/dazinator/DotNet.Glob and raw Regular Expressions, when running under dotnet50.
+We built this to provide a zero-allocation globbing library with performance comparable to (or better than) https://github.com/dazinator/DotNet.Glob and raw Regular Expressions, when running under net6.0.
 
 ## Use cases
 

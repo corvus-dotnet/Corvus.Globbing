@@ -22,7 +22,8 @@ namespace Corvus.Globbing
         /// <param name="value">The value to match.</param>
         /// <param name="comparisonType">The string comparison type. It defaults to <see cref="StringComparison.Ordinal"/>.</param>
         /// <returns>True if the given value matches the glob.</returns>
-        public static bool Match(in ReadOnlySpan<char> glob, in ReadOnlySpan<char> value, in StringComparison comparisonType = StringComparison.Ordinal)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Match(ReadOnlySpan<char> glob, ReadOnlySpan<char> value, StringComparison comparisonType = StringComparison.Ordinal)
         {
             // There can't be more tokens than there are characters the glob.
             GlobToken[] globTokenArray = Array.Empty<GlobToken>();
@@ -40,8 +41,8 @@ namespace Corvus.Globbing
 
             try
             {
-                int tokenCount = GlobTokenizer.Tokenize(glob, ref globTokens);
-                ReadOnlySpan<GlobToken> tokenizedGlob = globTokens.Slice(0, tokenCount);
+                int tokenCount = GlobTokenizer.Tokenize(glob, globTokens);
+                ReadOnlySpan<GlobToken> tokenizedGlob = globTokens[..tokenCount];
                 return Match(glob, tokenizedGlob, value, comparisonType);
             }
             finally
@@ -61,7 +62,8 @@ namespace Corvus.Globbing
         /// <param name="value">The value to match.</param>
         /// <param name="comparisonType">The string comparison type. It defaults to <see cref="StringComparison.Ordinal"/>.</param>
         /// <returns>True if the given value matches the tokenized glob.</returns>
-        public static bool Match(in ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in ReadOnlySpan<char> value, in StringComparison comparisonType = StringComparison.Ordinal)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Match(ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, ReadOnlySpan<char> value, StringComparison comparisonType = StringComparison.Ordinal)
         {
             bool isMatched = Match(glob, tokenizedGlob, value, comparisonType, out int charactersMatched, out int tokensMatched);
             return isMatched && charactersMatched == value.Length && tokensMatched == tokenizedGlob.Length;
@@ -78,7 +80,7 @@ namespace Corvus.Globbing
         /// <param name="tokensConsumed">The number of tokens consumed.</param>
         /// <returns>True if the given value matches the tokenized glob.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool Match(in ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in ReadOnlySpan<char> value, in StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
+        private static bool Match(ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, ReadOnlySpan<char> value, StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
         {
             int valueCharsRead = 0;
             int tokenIndex = 0;
@@ -130,7 +132,7 @@ namespace Corvus.Globbing
         /// <param name="tokensConsumed">The number of tokens consumed.</param>
         /// <returns><see langword="true"/> if the glob matched any number of characters from the start of the input value, otherwise <see langword="false"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchOrdinal(in ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in int tokenIndex, in ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchOrdinal(ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in int tokenIndex, ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
         {
             GlobToken currentToken = tokenizedGlob[tokenIndex];
             switch (currentToken.Type)
@@ -172,7 +174,7 @@ namespace Corvus.Globbing
         /// <param name="tokensConsumed">The number of tokens consumed.</param>
         /// <returns><see langword="true"/> if the glob matched any number of characters from the start of the input value, otherwise <see langword="false"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool Match(in ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in int tokenIndex, in ReadOnlySpan<char> value, in StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
+        private static bool Match(ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in int tokenIndex, ReadOnlySpan<char> value, StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
         {
             GlobToken currentToken = tokenizedGlob[tokenIndex];
             switch (currentToken.Type)
@@ -203,7 +205,7 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchWildcardDirectoryOrdinal(in ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in int tokenIndex, in ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchWildcardDirectoryOrdinal(ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in int tokenIndex, ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
         {
             // If we are matching a directory, there must be at least one path separator in the remaining string.
             if (value.Length == 0)
@@ -249,7 +251,7 @@ namespace Corvus.Globbing
             }
 
             // If the remaining tokens are optional (i.e. consume a minimum of 0 tokens) then we must also match.
-            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1) ..];
+            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1)..];
             SumMatchesMinLength(remainingPattern, out bool isFixedLength, out int matchesMinLength);
             int remainingMinLength = remainingPattern.Length == 0 ? 0 : matchesMinLength;
             if (remainingMinLength == 0)
@@ -318,9 +320,6 @@ namespace Corvus.Globbing
                     }
                 }
 
-                // Keep track of whether we have seen a separator; we must see at least one separator to be a whole segment
-                bool matchedSeparator = false;
-
                 // Iterate through the string until we reach the
                 // maximum possible substring
                 while (currentPosition <= maxPos)
@@ -335,9 +334,10 @@ namespace Corvus.Globbing
                         return true;
                     }
 
+                    // Keep track of whether we have seen a separator; we must see at least one separator to be a whole segment
                     // Otherwise, we skip on until we hit the next separator or maxPos, and then go
                     // back round and see if the *next* segment matches the remainder
-                    matchedSeparator = false;
+                    bool matchedSeparator = false;
                     while (currentPosition < maxPos)
                     {
                         currentPosition++;
@@ -370,7 +370,7 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchWildcardDirectory(in ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in int tokenIndex, in ReadOnlySpan<char> value, in StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchWildcardDirectory(ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in int tokenIndex, ReadOnlySpan<char> value, StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
         {
             // If we are matching a directory, there must be at least one path separator in the remaining string.
             if (value.Length == 0)
@@ -416,7 +416,7 @@ namespace Corvus.Globbing
             }
 
             // If the remaining tokens are optional (i.e. consume a minimum of 0 tokens) then we must also match.
-            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1) ..];
+            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1)..];
             SumMatchesMinLength(remainingPattern, out bool isFixedLength, out int matchesMinLength);
             int remainingMinLength = remainingPattern.Length == 0 ? 0 : matchesMinLength;
             if (remainingMinLength == 0)
@@ -485,9 +485,6 @@ namespace Corvus.Globbing
                     }
                 }
 
-                // Keep track of whether we have seen a separator; we must see at least one separator to be a whole segment
-                bool matchedSeparator = false;
-
                 // Iterate through the string until we reach the
                 // maximum possible substring
                 while (currentPosition <= maxPos)
@@ -502,9 +499,10 @@ namespace Corvus.Globbing
                         return true;
                     }
 
+                    // Keep track of whether we have seen a separator; we must see at least one separator to be a whole segment
                     // Otherwise, we skip on until we hit the next separator or maxPos, and then go
                     // back round and see if the *next* segment matches the remainder
-                    matchedSeparator = false;
+                    bool matchedSeparator = false;
                     while (currentPosition < maxPos)
                     {
                         currentPosition++;
@@ -539,7 +537,7 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchWildcardOrdinal(in ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in int tokenIndex, in ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchWildcardOrdinal(ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in int tokenIndex, ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
         {
             // First, check to see if we are the last token the glob
             if (tokenIndex == tokenizedGlob.Length - 1)
@@ -572,7 +570,7 @@ namespace Corvus.Globbing
 
             // We are not the last token in the glob, and so we need to ensure that however much we consume, the remaining tokens also match.
             // First: does the rest of pattern match a fixed length, or variable length?
-            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1) ..];
+            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1)..];
             SumMatchesMinLength(remainingPattern, out bool isFixedLength, out int matchesMinLength);
             if (isFixedLength)
             {
@@ -661,7 +659,7 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchWildcard(in ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in int tokenIndex, in ReadOnlySpan<char> value, in StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchWildcard(ReadOnlySpan<char> glob, in ReadOnlySpan<GlobToken> tokenizedGlob, in int tokenIndex, ReadOnlySpan<char> value, StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
         {
             // First, check to see if we are the last token the glob
             if (tokenIndex == tokenizedGlob.Length - 1)
@@ -694,7 +692,7 @@ namespace Corvus.Globbing
 
             // We are not the last token in the glob, and so we need to ensure that however much we consume, the remaining tokens also match.
             // First: does the rest of pattern match a fixed length, or variable length?
-            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1) ..];
+            ReadOnlySpan<GlobToken> remainingPattern = tokenizedGlob[(tokenIndex + 1)..];
             SumMatchesMinLength(remainingPattern, out bool isFixedLength, out int matchesMinLength);
             if (isFixedLength)
             {
@@ -761,7 +759,6 @@ namespace Corvus.Globbing
                     return true;
                 }
 
-                char currentChar = value[i];
                 if (GlobTokenizer.IsPathSeparatorChar(value[i]))
                 {
                     charactersMatched = 0;
@@ -786,7 +783,7 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchPathSeparator(in ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchPathSeparator(ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
         {
             if (GlobTokenizer.IsPathSeparatorChar(value[0]))
             {
@@ -801,17 +798,19 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchLiteralOrdinal(in ReadOnlySpan<char> glob, in GlobToken currentToken, in ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchLiteralOrdinal(ReadOnlySpan<char> glob, in GlobToken currentToken, ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
         {
-            int length = currentToken.Length;
-            if (value.Length < currentToken.Length)
+            int start = currentToken.Start;
+            int end = currentToken.End;
+            int length = end - start + 1;
+            if (value.Length < length)
             {
                 charactersMatched = 0;
                 tokensConsumed = 0;
                 return false;
             }
 
-            for (int i = currentToken.Start, j = 0; i <= currentToken.End; ++i, ++j)
+            for (int i = start, j = 0; i <= end; ++i, ++j)
             {
                 if (value[j] != glob[i])
                 {
@@ -827,17 +826,19 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchLiteral(in ReadOnlySpan<char> glob, in GlobToken currentToken, in ReadOnlySpan<char> value, in StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchLiteral(ReadOnlySpan<char> glob, in GlobToken currentToken, ReadOnlySpan<char> value, StringComparison comparisonType, out int charactersMatched, out int tokensConsumed)
         {
-            int length = currentToken.Length;
-            if (value.Length < currentToken.Length)
+            int start = currentToken.Start;
+            int end = currentToken.End;
+            int length = end - start + 1;
+            if (value.Length < length)
             {
                 charactersMatched = 0;
                 tokensConsumed = 0;
                 return false;
             }
 
-            ReadOnlySpan<char> literalToMatch = glob.Slice(currentToken.Start, length);
+            ReadOnlySpan<char> literalToMatch = glob.Slice(start, length);
             if (!value.StartsWith(literalToMatch, comparisonType))
             {
                 charactersMatched = 0;
@@ -851,7 +852,7 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchLetterRangeOrdinal(in ReadOnlySpan<char> glob, in GlobToken currentToken, in ReadOnlySpan<char> value, bool isNegated, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchLetterRangeOrdinal(ReadOnlySpan<char> glob, in GlobToken currentToken, ReadOnlySpan<char> value, bool isNegated, out int charactersMatched, out int tokensConsumed)
         {
             if (value.Length == 0)
             {
@@ -895,7 +896,7 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchLetterRange(in ReadOnlySpan<char> glob, in GlobToken currentToken, in ReadOnlySpan<char> value, in StringComparison comparisonType, bool isNegated, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchLetterRange(ReadOnlySpan<char> glob, in GlobToken currentToken, ReadOnlySpan<char> value, StringComparison comparisonType, bool isNegated, out int charactersMatched, out int tokensConsumed)
         {
             if (value.Length == 0)
             {
@@ -911,7 +912,7 @@ namespace Corvus.Globbing
                 return false;
             }
 
-            ReadOnlySpan<char> currentValue = value.Slice(0, 1);
+            ReadOnlySpan<char> currentValue = value[..1];
 
             if (currentValue.CompareTo(glob.Slice(currentToken.Start, 1), comparisonType) >= 0 && currentValue.CompareTo(glob.Slice(currentToken.End, 1), comparisonType) <= 0)
             {
@@ -940,7 +941,7 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchCharacterListOrdinal(in ReadOnlySpan<char> glob, in GlobToken currentToken, in ReadOnlySpan<char> value, bool isNegated, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchCharacterListOrdinal(ReadOnlySpan<char> glob, in GlobToken currentToken, ReadOnlySpan<char> value, bool isNegated, out int charactersMatched, out int tokensConsumed)
         {
             if (value.Length == 0)
             {
@@ -956,8 +957,10 @@ namespace Corvus.Globbing
                 return false;
             }
 
+            int start = currentToken.Start;
+            int end = currentToken.End;
             char currentValue = value[0];
-            for (int i = currentToken.Start; i <= currentToken.End; ++i)
+            for (int i = start; i <= end; ++i)
             {
                 if (currentValue == glob[i])
                 {
@@ -987,7 +990,7 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchCharacterList(in ReadOnlySpan<char> glob, in GlobToken currentToken, in ReadOnlySpan<char> value, in StringComparison comparisonType, bool isNegated, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchCharacterList(ReadOnlySpan<char> glob, in GlobToken currentToken, ReadOnlySpan<char> value, StringComparison comparisonType, bool isNegated, out int charactersMatched, out int tokensConsumed)
         {
             if (value.Length == 0)
             {
@@ -1003,8 +1006,11 @@ namespace Corvus.Globbing
                 return false;
             }
 
-            ReadOnlySpan<char> currentValue = value.Slice(0, 1);
-            for (int i = currentToken.Start; i <= currentToken.End; ++i)
+            int start = currentToken.Start;
+            int end = currentToken.End;
+
+            ReadOnlySpan<char> currentValue = value[..1];
+            for (int i = start; i <= end; ++i)
             {
                 if (currentValue.Equals(glob.Slice(i, 1), comparisonType))
                 {
@@ -1034,7 +1040,7 @@ namespace Corvus.Globbing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool MatchAnyCharacter(in ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
+        private static bool MatchAnyCharacter(ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
         {
             // This actually matches any character except a path separator.
             if (GlobTokenizer.IsPathSeparatorChar(value[0]))
@@ -1054,7 +1060,7 @@ namespace Corvus.Globbing
         {
             if (token.Type == GlobTokenType.Literal)
             {
-                return token.Length;
+                return (token.End - token.Start) + 1;
             }
 
             if (token.Type == GlobTokenType.Wildcard ||

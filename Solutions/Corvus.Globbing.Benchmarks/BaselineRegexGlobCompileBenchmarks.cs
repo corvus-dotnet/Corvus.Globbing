@@ -75,7 +75,7 @@ namespace Corvus.Globbing.Benchmarks
         public int New_Corvus_Glob()
         {
             Span<Corvus.Globbing.GlobToken> tokenizedGlob = stackalloc Corvus.Globbing.GlobToken[this.patternLength!.Value];
-            return Corvus.Globbing.GlobTokenizer.Tokenize(this.Pattern, ref tokenizedGlob);
+            return Corvus.Globbing.GlobTokenizer.Tokenize(this.Pattern, tokenizedGlob);
         }
     }
 }

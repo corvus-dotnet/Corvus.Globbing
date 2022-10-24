@@ -96,8 +96,8 @@ namespace Corvus.Globbing.Benchmarks
         public bool CorvusGlob_IsMatch()
         {
             Span<Corvus.Globbing.GlobToken> tokenizedGlob = stackalloc Corvus.Globbing.GlobToken[this.patternLength!.Value];
-            int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(this.Pattern, ref tokenizedGlob);
-            ReadOnlySpan<GlobToken> glob = tokenizedGlob.Slice(0, tokenCount);
+            int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(this.Pattern, tokenizedGlob);
+            ReadOnlySpan<GlobToken> glob = tokenizedGlob[..tokenCount];
 
             bool result = false;
             for (int i = 0; i < this.NumberOfMatches; i++)

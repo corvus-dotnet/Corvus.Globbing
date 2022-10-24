@@ -19,7 +19,7 @@ namespace Corvus.Globbing
         /// <param name="tokenizedGlob">The tokenized glob.</param>
         /// <returns>The number of tokens created.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Tokenize(in ReadOnlySpan<char> glob, ref Span<GlobToken> tokenizedGlob)
+        public static int Tokenize(ReadOnlySpan<char> glob, in Span<GlobToken> tokenizedGlob)
         {
             int tokenIndex = 0;
             var reader = new GlobReader(glob);
@@ -70,7 +70,7 @@ namespace Corvus.Globbing
         /// <param name="token">The glob token to test.</param>
         /// <returns><see langword="true"/> if the leading character is a separator, otherwise <see langword="false"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool HasLeadingPathSeparator(in ReadOnlySpan<char> glob, in GlobToken token)
+        internal static bool HasLeadingPathSeparator(ReadOnlySpan<char> glob, in GlobToken token)
         {
             return IsPathSeparatorChar(glob[token.Start]);
         }
@@ -82,7 +82,7 @@ namespace Corvus.Globbing
         /// <param name="token">The glob token to test.</param>
         /// <returns><see langword="true"/> if the trailing character is a separator, otherwise <see langword="false"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool HasTrailingPathSeparator(in ReadOnlySpan<char> glob, in GlobToken token)
+        internal static bool HasTrailingPathSeparator(ReadOnlySpan<char> glob, in GlobToken token)
         {
             return IsPathSeparatorChar(glob[token.End]);
         }

@@ -1,33 +1,39 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(EndjinProjectPropsPath)" Condition="$(EndjinProjectPropsPath) != ''" />
+	<Import Project="$(EndjinProjectPropsPath)" Condition="$(EndjinProjectPropsPath) != ''" />
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <NoWarn>RCS1029;CS1591</NoWarn>
-  </PropertyGroup>
+	<PropertyGroup>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<RestoreLockedMode Condition="$(ContinuousIntegrationBuild) == 'true'">true</RestoreLockedMode>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <NoWarn>RCS1029;CS1591</NoWarn>
-  </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Corvus.Testing.SpecFlow.NUnit" Version="1.4.6" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="5.0.1" />
-    <PackageReference Include="Endjin.RecommendedPractices" Version="1.2.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
-    <PackageReference Include="FluentAssertions" Version="6.1.0" />
- </ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<NoWarn>RCS1029;CS1591</NoWarn>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Corvus.Globbing\Corvus.Globbing.csproj" />
-  </ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<NoWarn>RCS1029;CS1591</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Corvus.Testing.SpecFlow.NUnit" Version="1.5.1" />
+		<PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" />
+		<PackageReference Include="Endjin.RecommendedPractices.GitHub" Version="2.1.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" />
+		<PackageReference Include="FluentAssertions" Version="6.8.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Corvus.Globbing\Corvus.Globbing.csproj" />
+	</ItemGroup>
 
 </Project>
