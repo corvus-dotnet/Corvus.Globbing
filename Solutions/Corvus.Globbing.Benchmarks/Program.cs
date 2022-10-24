@@ -18,10 +18,10 @@ namespace Corvus.Globbing.Benchmarks
         public static void Main(string[] args)
         {
             BenchmarkRunner.Run<BaselineRegexGlobCompileBenchmarks>();
-            BenchmarkRunner.Run<BaselineRegexCompileAndMatchTrueBenchmarks>();
             BenchmarkRunner.Run<BaselineRegexCompileAndMatchFalseBenchmarks>();
-            BenchmarkRunner.Run<BaselineRegexIsMatchTrueBenchmarks>();
+            BenchmarkRunner.Run<BaselineRegexCompileAndMatchTrueBenchmarks>();
             BenchmarkRunner.Run<BaselineRegexIsMatchFalseBenchmarks>();
+            BenchmarkRunner.Run<BaselineRegexIsMatchTrueBenchmarks>();
         }
     }
 }
