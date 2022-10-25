@@ -21,7 +21,7 @@ Our motivation for this came when "link stripping" documents to be returned from
 We also want to minimize allocations on the hot-path of a request handler. 
 
 ### Performance targets
-We offer better raw matching performance (~10-30%) against a pre-tokenized glob pattern, for the `StringComparison.Ordinal` (case sensitive) default, than [Dotnet.Glob](https://github.com/dazinator/DotNet.Glob).
+We offer better raw matching performance (~50-80%) against a pre-tokenized glob pattern, for the `StringComparison.Ordinal` (case sensitive) default, than [Dotnet.Glob](https://github.com/dazinator/DotNet.Glob).
 
 Our tokenization is also ~10x faster than [Dotnet.Glob](https://github.com/dazinator/DotNet.Glob) so it is significantly faster in the single use/throwaway case.
 
