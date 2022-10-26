@@ -1,6 +1,6 @@
 #!markdown
 
-## Glob - Sample Notebook
+## Corvus.Globbing - Sample Notebook
 
 #!markdown
 
@@ -17,18 +17,135 @@ Add using statement for `Corvus.Globbing` namespace
 #!csharp
 
 using Corvus.Globbing;
+using System.Buffers;
 
 #!markdown
 
-### `Match()`
+## `Glob.Match()`
 
 Matches a value against a glob
 
-#!markdown
-
-### 
+The simplest case just requires you to pass the glob and the candidate path to match.
 
 #!csharp
 
 bool isMatch = Glob.Match("path/*atstand", "path/fooatstand");
 return isMatch;
+
+#!markdown
+
+You can provide all the standard [string-comparison](https://learn.microsoft.com/en-us/dotnet/api/system.stringcomparison?view=net-6.0) types. The default is StringComparison.Ordinal (i.e. case sensitive), but you could do a case insensitive match:
+
+#!csharp
+
+bool isMatch = Glob.Match("path/*atstand", "PATH/fooatstand", StringComparison.OrdinalIgnoreCase); 
+
+#!markdown
+
+## `GlobTokenizer.Tokenize()`
+
+Tokenizes a glob and returns the number of tokens created.
+
+#!csharp
+
+public static void TokenizeAGlobExample(string pattern)
+{
+    Span<GlobToken> tokenizedGlob = stackalloc GlobToken[pattern.Length];
+    int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(pattern, ref tokenizedGlob);
+
+    Console.WriteLine($"Number of glob tokens created:\t{tokenCount}");
+}
+
+#!csharp
+
+string pattern = "path/*atstand";
+TokenizeAGlobExample(pattern);
+
+#!markdown
+
+## Further Examples
+
+#!markdown
+
+### Efficient matching of a glob against multiple paths
+
+If you want to hold on to the tokenized glob and match against a number of paths, you can stack allocate a tokenized glob array, and reuse it:
+
+#!csharp
+
+public static void MatchAgainstMultiplePathsExample(string pattern)
+{
+    // There can't be more tokens than there are characters in the glob pattern, so we allocate an array at least that long.
+    Span<GlobToken> tokenizedGlob = stackalloc GlobToken[pattern.Length];
+    int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(pattern, ref tokenizedGlob);
+    // And then slice off the number of tokens we actually used
+    ReadOnlySpan<GlobToken> glob = tokenizedGlob.Slice(0, tokenCount);
+    
+    bool firstMatch = Glob.Match(pattern, glob, "path/fooatstand");
+    Console.WriteLine($"Result of first match:\t{firstMatch}");
+    
+    bool secondMatch = Glob.Match(pattern, glob, "badpath/fooatstand");
+    Console.WriteLine($"Result of second match:\t{secondMatch}");
+}
+
+#!csharp
+
+string pattern = "path/*atstand";
+MatchAgainstMultiplePathsExample(pattern)
+
+#!markdown
+
+### Efficient matching of large globs against multiple paths
+
+#!markdown
+
+For very long potential globs, you could fall back to the ArrayPool allocation technique:
+
+#!csharp
+
+public static void MatchLargeGlobAgainstMultiplePathsExample(string pattern)
+{
+    // Pick a token array length threshold
+    int MaxGlobTokenArrayLength = 1024;
+
+    // There can't be more tokens than there are characters the glob.
+    GlobToken[] globTokenArray = Array.Empty<GlobToken>();
+    Span<GlobToken> globTokens = stackalloc GlobToken[0];
+
+    if (pattern.Length > MaxGlobTokenArrayLength)
+    {
+        globTokenArray = ArrayPool<GlobToken>.Shared.Rent(pattern.Length);
+        globTokens = globTokenArray.AsSpan();
+    }
+    else
+    {
+        globTokens = stackalloc GlobToken[pattern.Length];
+    }
+
+    try
+    {
+        int tokenCount = GlobTokenizer.Tokenize(pattern, ref globTokens);
+        ReadOnlySpan<GlobToken> tokenizedGlob = globTokens.Slice(0, tokenCount);
+
+        // Do your matching here...
+        bool firstMatch = Glob.Match(pattern, tokenizedGlob, "path/fooatstand");
+        Console.WriteLine($"Result of first match:\t{firstMatch}");
+
+        bool secondMatch = Glob.Match(pattern, tokenizedGlob, "badpath/fooatstand");
+        Console.WriteLine($"Result of second match:\t{secondMatch}");
+
+        
+    }
+    finally
+    {
+        if (pattern.Length > MaxGlobTokenArrayLength)
+        {
+            ArrayPool<GlobToken>.Shared.Return(globTokenArray);
+        }
+    }
+}
+
+#!csharp
+
+string pattern = "path/*atstand";
+MatchLargeGlobAgainstMultiplePathsExample(pattern);
