@@ -23,7 +23,7 @@ using System.Buffers;
 
 ## `Glob.Match()`
 
-Matches a value against a glob
+Matches a value against a glob.
 
 The simplest case just requires you to pass the glob and the candidate path to match.
 
@@ -34,7 +34,7 @@ return isMatch;
 
 #!markdown
 
-You can provide all the standard [string-comparison](https://learn.microsoft.com/en-us/dotnet/api/system.stringcomparison?view=net-6.0) types. The default is StringComparison.Ordinal (i.e. case sensitive), but you could do a case insensitive match:
+You can provide all the standard [string-comparison](https://learn.microsoft.com/en-us/dotnet/api/system.stringcomparison?view=net-6.0) types. The default is `StringComparison.Ordinal` (i.e. case sensitive), but you could do a case insensitive match:
 
 #!csharp
 
@@ -79,7 +79,7 @@ public static void MatchAgainstMultiplePathsExample(string pattern)
     Span<GlobToken> tokenizedGlob = stackalloc GlobToken[pattern.Length];
     int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(pattern, ref tokenizedGlob);
     // And then slice off the number of tokens we actually used
-    ReadOnlySpan<GlobToken> glob = tokenizedGlob.Slice(0, tokenCount);
+    ReadOnlySpan<GlobToken> glob = tokenizedGlob[..tokenCount];
     
     bool firstMatch = Glob.Match(pattern, glob, "path/fooatstand");
     Console.WriteLine($"Result of first match:\t{firstMatch}");
@@ -125,7 +125,7 @@ public static void MatchLargeGlobAgainstMultiplePathsExample(string pattern)
     try
     {
         int tokenCount = GlobTokenizer.Tokenize(pattern, ref globTokens);
-        ReadOnlySpan<GlobToken> tokenizedGlob = globTokens.Slice(0, tokenCount);
+        ReadOnlySpan<GlobToken> tokenizedGlob = globTokens[..tokenCount];
 
         // Do your matching here...
         bool firstMatch = Glob.Match(pattern, tokenizedGlob, "path/fooatstand");
