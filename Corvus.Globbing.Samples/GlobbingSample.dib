@@ -39,6 +39,7 @@ You can provide all the standard [string-comparison](https://learn.microsoft.com
 #!csharp
 
 bool isMatch = Glob.Match("path/*atstand", "PATH/fooatstand", StringComparison.OrdinalIgnoreCase); 
+return isMatch;
 
 #!markdown
 
@@ -103,13 +104,15 @@ For very long potential globs, you could fall back to the ArrayPool allocation t
 
 #!csharp
 
+#nullable enable
+
 public static void MatchLargeGlobAgainstMultiplePathsExample(string pattern)
 {
     // Pick a token array length threshold
     int MaxGlobTokenArrayLength = 1024;
 
     // There can't be more tokens than there are characters the glob.
-    GlobToken[] globTokenArray = Array.Empty<GlobToken>();
+    GlobToken[]? globTokenArray = null;
     Span<GlobToken> globTokens = stackalloc GlobToken[0];
 
     if (pattern.Length > MaxGlobTokenArrayLength)
