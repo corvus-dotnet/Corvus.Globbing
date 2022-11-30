@@ -113,16 +113,12 @@ public static void MatchLargeGlobAgainstMultiplePathsExample(string pattern)
 
     // There can't be more tokens than there are characters the glob.
     GlobToken[]? globTokenArray = null;
-    Span<GlobToken> globTokens = stackalloc GlobToken[0];
+    Span<GlobToken> globTokens = pattern.Length > MaxGlobTokenArrayLength ? stackalloc GlobToken[0] : stackalloc GlobToken[pattern.Length];
 
     if (pattern.Length > MaxGlobTokenArrayLength)
     {
         globTokenArray = ArrayPool<GlobToken>.Shared.Rent(pattern.Length);
         globTokens = globTokenArray.AsSpan();
-    }
-    else
-    {
-        globTokens = stackalloc GlobToken[pattern.Length];
     }
 
     try
