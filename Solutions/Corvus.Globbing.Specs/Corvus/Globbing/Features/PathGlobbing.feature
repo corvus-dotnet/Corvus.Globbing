@@ -113,3 +113,6 @@ Scenario Outline: Glob a path
 		| ***                                                       | /foo/bar                                                    | sensitive     | true   |
 		| **/*                                                      | /foo/bar/                                                   | sensitive     | true   |
 		| **/*foo                                                   | /foo/bar/baz                                                | sensitive     | false  |
+		| api/cases/*                                               | api/cases                                                   | insensitive   | false  |
+		| api/cases/*                                               | API/CASES                                                   | insensitive   | false  |
+		| api/cases/*                                               | API/CASES                                                   | sensitive     | false  |
