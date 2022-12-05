@@ -7,7 +7,7 @@ namespace Corvus.Globbing
     /// <summary>
     /// The given glob token type.
     /// </summary>
-    public enum GlobTokenType
+    public enum GlobTokenType : byte
     {
         /// <summary>
         /// Any character (?).

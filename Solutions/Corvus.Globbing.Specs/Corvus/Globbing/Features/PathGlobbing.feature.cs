@@ -181,6 +181,9 @@ namespace Corvus.Globbing.Features
         [NUnit.Framework.TestCaseAttribute("***", "/foo/bar", "sensitive", "true", null)]
         [NUnit.Framework.TestCaseAttribute("**/*", "/foo/bar/", "sensitive", "true", null)]
         [NUnit.Framework.TestCaseAttribute("**/*foo", "/foo/bar/baz", "sensitive", "false", null)]
+        [NUnit.Framework.TestCaseAttribute("api/cases/*", "api/cases", "insensitive", "false", null)]
+        [NUnit.Framework.TestCaseAttribute("api/cases/*", "API/CASES", "insensitive", "false", null)]
+        [NUnit.Framework.TestCaseAttribute("api/cases/*", "API/CASES", "sensitive", "false", null)]
         public virtual void GlobAPath(string glob, string path, string caseSensitive, string result, string[] exampleTags)
         {
             string[] tagsOfScenario = exampleTags;

@@ -9,7 +9,7 @@ namespace Corvus.Globbing.Benchmarks
     /// <summary>
     /// Dotnet benchmark runner.
     /// </summary>
-    public class Program
+    public static class Program
     {
         /// <summary>
         /// Main entry point.
@@ -18,10 +18,10 @@ namespace Corvus.Globbing.Benchmarks
         public static void Main(string[] args)
         {
             BenchmarkRunner.Run<BaselineRegexGlobCompileBenchmarks>();
-            BenchmarkRunner.Run<BaselineRegexCompileAndMatchTrueBenchmarks>();
             BenchmarkRunner.Run<BaselineRegexCompileAndMatchFalseBenchmarks>();
-            BenchmarkRunner.Run<BaselineRegexIsMatchTrueBenchmarks>();
+            BenchmarkRunner.Run<BaselineRegexCompileAndMatchTrueBenchmarks>();
             BenchmarkRunner.Run<BaselineRegexIsMatchFalseBenchmarks>();
+            BenchmarkRunner.Run<BaselineRegexIsMatchTrueBenchmarks>();
         }
     }
 }
