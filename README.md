@@ -19,7 +19,7 @@ dotnet add package Corvus.Globbing
 
 Use the --version option to specify a [version](https://www.nuget.org/packages/Corvus.Extensions#versions-body-tab) to install.
 ```
-dotnet add package Corvus.Globbing --version 1.0.1
+dotnet add package Corvus.Globbing --version 0.1.0
 ```
 
 ## Purpose
