@@ -5,6 +5,23 @@
 
 A zero allocation globbing library.
 
+## Repository Structure 
+
+- `Solutions` - Contains source code files, benchmarks and specs.
+- `Documentation` - Contains documentation, including polyglot notebooks containing code examples inside the `Examples` subfolder.
+
+## Getting Started 
+
+`Corvus.Extensions` is available on [NuGet](https://www.nuget.org/packages/Corvus.Extensions). To add a reference to the package in your project, run the following command
+```
+dotnet add package Corvus.Globbing
+```
+
+Use the --version option to specify a [version](https://www.nuget.org/packages/Corvus.Extensions#versions-body-tab) to install.
+```
+dotnet add package Corvus.Globbing --version 1.0.1
+```
+
 ## Purpose
 
 We built this to provide a zero-allocation globbing library with performance comparable to (or better than) https://github.com/dazinator/DotNet.Glob and raw Regular Expressions, when running under net6.0.
