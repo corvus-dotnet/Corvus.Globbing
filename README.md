@@ -5,6 +5,23 @@
 
 A zero allocation globbing library.
 
+## Repository Structure 
+
+- `Solutions` - Contains source code files, benchmarks and specs.
+- `Documentation` - Contains documentation, including polyglot notebooks containing code examples inside the `Examples` subfolder.
+
+## Getting Started 
+
+`Corvus.Globbing` is available on [NuGet](https://www.nuget.org/packages/Corvus.Globbing). To add a reference to the package in your project, run the following command
+```
+dotnet add package Corvus.Globbing
+```
+
+Use the --version option to specify a [version](https://www.nuget.org/packages/Corvus.Globbing#versions-tab) to install.
+```
+dotnet add package Corvus.Globbing --version 0.1.0
+```
+
 ## Purpose
 
 We built this to provide a zero-allocation globbing library with performance comparable to (or better than) https://github.com/dazinator/DotNet.Glob and raw Regular Expressions, when running under net6.0.
@@ -48,48 +65,46 @@ string pattern = "path/*atstand";
 Span<GlobToken> tokenizedGlob = stackalloc GlobToken[pattern.Length];
 int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(pattern, ref tokenizedGlob);
 // And then slice off the number of tokens we actually used
-ReadOnlySpan<GlobToken> glob = tokenizedGlob.Slice(0, tokenCount);
+ReadOnlySpan<GlobToken> glob = tokenizedGlob[..tokenCount];
 
-bool firstMatch = Glob.Match(pattern, glob, "path/fooatstand");
-bool secondMatch = Glob.Match(pattern, glob, "badpath/fooatstand");
+bool firstMatch = Glob.Match(pattern, glob, "path/fooatstand"); // Returns: true
+bool secondMatch = Glob.Match(pattern, glob, "badpath/fooatstand"); // Returns: false
 ```
 
 For very long potential globs, you could fall back to the `ArrayPool` allocation technique:
 
 ```csharp
-// Pick a token array length threshold
-int MaxGlobTokenArrayLength = 1024;
+    // Pick a token array length threshold
+    int MaxGlobTokenArrayLength = 1024;
 
-string pattern = "path/*atstand";
+    string pattern = "path/*atstand";
 
-// There can't be more tokens than there are characters the glob.
-GlobToken[] globTokenArray = Array.Empty<GlobToken>();
-Span<GlobToken> globTokens = stackalloc GlobToken[0];
+    // There can't be more tokens than there are characters the glob.
+    GlobToken[]? globTokenArray = null;
+    Span<GlobToken> globTokens = pattern.Length > MaxGlobTokenArrayLength ? stackalloc GlobToken[0] : stackalloc GlobToken[pattern.Length];
 
-if (pattern.Length > MaxGlobTokenArrayLength)
-{
-    globTokenArray = ArrayPool<GlobToken>.Shared.Rent(pattern.Length);
-    globTokens = globTokenArray.AsSpan();
-}
-else
-{
-    globTokens = stackalloc GlobToken[pattern.Length];
-}
-
-try
-{
-    int tokenCount = GlobTokenizer.Tokenize(pattern, ref globTokens);
-    ReadOnlySpan<GlobToken> tokenizedGlob = globTokens.Slice(0, tokenCount);
-
-    // Do your matching here...
-    bool firstMatch = Glob.Match(pattern, tokenizedGlob, "path/fooatstand");
-    bool secondMatch = Glob.Match(pattern, tokenizedGlob, "badpath/fooatstand");
-}
-finally
-{
     if (pattern.Length > MaxGlobTokenArrayLength)
     {
-        ArrayPool<GlobToken>.Shared.Return(globTokenArray);
+        globTokenArray = ArrayPool<GlobToken>.Shared.Rent(pattern.Length);
+        globTokens = globTokenArray.AsSpan();
+    }
+
+    try
+    {
+        int tokenCount = GlobTokenizer.Tokenize(pattern, ref globTokens);
+        ReadOnlySpan<GlobToken> tokenizedGlob = globTokens[..tokenCount];
+
+        // Do your matching here...
+        bool firstMatch = Glob.Match(pattern, tokenizedGlob, "path/fooatstand"); // Returns: true
+
+        bool secondMatch = Glob.Match(pattern, tokenizedGlob, "badpath/fooatstand"); // Returns: false
+    }
+    finally
+    {
+        if (pattern.Length > MaxGlobTokenArrayLength)
+        {
+            ArrayPool<GlobToken>.Shared.Return(globTokenArray);
+        }
     }
 }
 ```
