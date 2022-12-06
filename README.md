@@ -12,7 +12,7 @@ A zero allocation globbing library.
 
 ## Getting Started 
 
-`Corvus.Globbing` is available on [NuGet](https://www.nuget.org/packages/Corvus.Extensions). To add a reference to the package in your project, run the following command
+`Corvus.Globbing` is available on [NuGet](https://www.nuget.org/packages/Corvus.Globbing). To add a reference to the package in your project, run the following command
 ```
 dotnet add package Corvus.Globbing
 ```
