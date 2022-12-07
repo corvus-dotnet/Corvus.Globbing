@@ -89,7 +89,7 @@ namespace Corvus.Globbing
             {
                 while (tokenIndex < tokenizedGlob.Length)
                 {
-                    if (!MatchOrdinal(glob, tokenizedGlob, tokenIndex, value[valueCharsRead..], out int internalCharactersMatched, out int internalTokensConsumed))
+                    if (!MatchOrdinal(glob, tokenizedGlob, tokenIndex, valueCharsRead < value.Length ? value[valueCharsRead..] : ReadOnlySpan<char>.Empty, out int internalCharactersMatched, out int internalTokensConsumed))
                     {
                         charactersMatched = 0;
                         tokensConsumed = 0;
@@ -104,7 +104,7 @@ namespace Corvus.Globbing
             {
                 while (tokenIndex < tokenizedGlob.Length)
                 {
-                    if (!Match(glob, tokenizedGlob, tokenIndex, value[valueCharsRead..], comparisonType, out int internalCharactersMatched, out int internalTokensConsumed))
+                    if (!Match(glob, tokenizedGlob, tokenIndex, valueCharsRead < value.Length ? value[valueCharsRead..] : ReadOnlySpan<char>.Empty, comparisonType, out int internalCharactersMatched, out int internalTokensConsumed))
                     {
                         charactersMatched = 0;
                         tokensConsumed = 0;
@@ -785,6 +785,13 @@ namespace Corvus.Globbing
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool MatchPathSeparator(ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
         {
+            if (value.Length == 0)
+            {
+                charactersMatched = 0;
+                tokensConsumed = 0;
+                return false;
+            }
+
             if (GlobTokenizer.IsPathSeparatorChar(value[0]))
             {
                 charactersMatched = 1;
@@ -1043,7 +1050,7 @@ namespace Corvus.Globbing
         private static bool MatchAnyCharacter(ReadOnlySpan<char> value, out int charactersMatched, out int tokensConsumed)
         {
             // This actually matches any character except a path separator.
-            if (GlobTokenizer.IsPathSeparatorChar(value[0]))
+            if (value.Length == 0 || GlobTokenizer.IsPathSeparatorChar(value[0]))
             {
                 charactersMatched = 0;
                 tokensConsumed = 0;

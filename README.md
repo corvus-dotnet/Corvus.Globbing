@@ -5,6 +5,23 @@
 
 A zero allocation globbing library.
 
+## Repository Structure 
+
+- `Solutions` - Contains source code files, benchmarks and specs.
+- `Documentation` - Contains documentation, including polyglot notebooks containing code examples inside the `Examples` subfolder.
+
+## Getting Started 
+
+`Corvus.Globbing` is available on [NuGet](https://www.nuget.org/packages/Corvus.Globbing). To add a reference to the package in your project, run the following command
+```
+dotnet add package Corvus.Globbing
+```
+
+Use the --version option to specify a [version](https://www.nuget.org/packages/Corvus.Globbing#versions-tab) to install.
+```
+dotnet add package Corvus.Globbing --version 0.1.0
+```
+
 ## Purpose
 
 We built this to provide a zero-allocation globbing library with performance comparable to (or better than) https://github.com/dazinator/DotNet.Glob and raw Regular Expressions, when running under net6.0.
@@ -48,48 +65,46 @@ string pattern = "path/*atstand";
 Span<GlobToken> tokenizedGlob = stackalloc GlobToken[pattern.Length];
 int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(pattern, ref tokenizedGlob);
 // And then slice off the number of tokens we actually used
-ReadOnlySpan<GlobToken> glob = tokenizedGlob.Slice(0, tokenCount);
+ReadOnlySpan<GlobToken> glob = tokenizedGlob[..tokenCount];
 
-bool firstMatch = Glob.Match(pattern, glob, "path/fooatstand");
-bool secondMatch = Glob.Match(pattern, glob, "badpath/fooatstand");
+bool firstMatch = Glob.Match(pattern, glob, "path/fooatstand"); // Returns: true
+bool secondMatch = Glob.Match(pattern, glob, "badpath/fooatstand"); // Returns: false
 ```
 
 For very long potential globs, you could fall back to the `ArrayPool` allocation technique:
 
 ```csharp
-// Pick a token array length threshold
-int MaxGlobTokenArrayLength = 1024;
+    // Pick a token array length threshold
+    int MaxGlobTokenArrayLength = 1024;
 
-string pattern = "path/*atstand";
+    string pattern = "path/*atstand";
 
-// There can't be more tokens than there are characters the glob.
-GlobToken[] globTokenArray = Array.Empty<GlobToken>();
-Span<GlobToken> globTokens = stackalloc GlobToken[0];
+    // There can't be more tokens than there are characters the glob.
+    GlobToken[]? globTokenArray = null;
+    Span<GlobToken> globTokens = pattern.Length > MaxGlobTokenArrayLength ? stackalloc GlobToken[0] : stackalloc GlobToken[pattern.Length];
 
-if (pattern.Length > MaxGlobTokenArrayLength)
-{
-    globTokenArray = ArrayPool<GlobToken>.Shared.Rent(pattern.Length);
-    globTokens = globTokenArray.AsSpan();
-}
-else
-{
-    globTokens = stackalloc GlobToken[pattern.Length];
-}
-
-try
-{
-    int tokenCount = GlobTokenizer.Tokenize(pattern, ref globTokens);
-    ReadOnlySpan<GlobToken> tokenizedGlob = globTokens.Slice(0, tokenCount);
-
-    // Do your matching here...
-    bool firstMatch = Glob.Match(pattern, tokenizedGlob, "path/fooatstand");
-    bool secondMatch = Glob.Match(pattern, tokenizedGlob, "badpath/fooatstand");
-}
-finally
-{
     if (pattern.Length > MaxGlobTokenArrayLength)
     {
-        ArrayPool<GlobToken>.Shared.Return(globTokenArray);
+        globTokenArray = ArrayPool<GlobToken>.Shared.Rent(pattern.Length);
+        globTokens = globTokenArray.AsSpan();
+    }
+
+    try
+    {
+        int tokenCount = GlobTokenizer.Tokenize(pattern, ref globTokens);
+        ReadOnlySpan<GlobToken> tokenizedGlob = globTokens[..tokenCount];
+
+        // Do your matching here...
+        bool firstMatch = Glob.Match(pattern, tokenizedGlob, "path/fooatstand"); // Returns: true
+
+        bool secondMatch = Glob.Match(pattern, tokenizedGlob, "badpath/fooatstand"); // Returns: false
+    }
+    finally
+    {
+        if (pattern.Length > MaxGlobTokenArrayLength)
+        {
+            ArrayPool<GlobToken>.Shared.Return(globTokenArray);
+        }
     }
 }
 ```
@@ -120,118 +135,118 @@ We have used Benchmark Dotnet to compare the performance with raw RegEx and DotN
 _(note that we have re-baselined on the Corvus implementation for ease of comparison)_
 
 ### Compile
-|                  Method |              Pattern |         Mean |      Error |       StdDev |       Median |  Ratio | RatioSD |   Gen0 |   Gen1 | Allocated | Alloc Ratio |
-|------------------------ |--------------------- |-------------:|-----------:|-------------:|-------------:|-------:|--------:|-------:|-------:|----------:|------------:|
-| **New_Compiled_Regex_Glob** | **p?th/(...)].txt [50]** | **22,711.52 ns** | **312.245 ns** |   **292.075 ns** | **22,722.18 ns** | **116.87** |    **6.76** | **5.0354** | **0.0305** |   **21168 B** |          **NA** |
-|         New_DotNet_Glob | p?th/(...)].txt [50] |  1,714.77 ns |  32.992 ns |    27.550 ns |  1,706.28 ns |   8.72 |    0.48 | 0.6733 |      - |    2816 B |          NA |
-|         New_Corvus_Glob | p?th/(...)].txt [50] |    181.49 ns |   3.243 ns |     8.372 ns |    178.24 ns |   1.00 |    0.00 |      - |      - |         - |          NA |
-|                         |                      |              |            |              |              |        |         |        |        |           |             |
-| **New_Compiled_Regex_Glob** | **p?th/(...)].txt [21]** | **13,542.85 ns** | **268.211 ns** |   **263.420 ns** | **13,516.94 ns** | **149.33** |    **2.71** | **3.3875** |      **-** |   **14280 B** |          **NA** |
-|         New_DotNet_Glob | p?th/(...)].txt [21] |  1,091.12 ns |  15.724 ns |    14.708 ns |  1,093.35 ns |  12.04 |    0.29 | 0.4539 |      - |    1904 B |          NA |
-|         New_Corvus_Glob | p?th/(...)].txt [21] |     90.61 ns |   1.652 ns |     1.464 ns |     90.99 ns |   1.00 |    0.00 |      - |      - |         - |          NA |
-|                         |                      |              |            |              |              |        |         |        |        |           |             |
-| **New_Compiled_Regex_Glob** | **p?th/(...)].txt [46]** | **16,944.90 ns** | **204.460 ns** |   **170.733 ns** | **16,985.44 ns** |  **53.14** |    **1.90** | **4.1199** |      **-** |   **17328 B** |          **NA** |
-|         New_DotNet_Glob | p?th/(...)].txt [46] |  1,648.61 ns |  29.527 ns |    27.620 ns |  1,639.03 ns |   5.16 |    0.19 | 0.5665 |      - |    2376 B |          NA |
-|         New_Corvus_Glob | p?th/(...)].txt [46] |    289.22 ns |   8.345 ns |    24.605 ns |    282.93 ns |   1.00 |    0.00 |      - |      - |         - |          NA |
-|                         |                      |              |            |              |              |        |         |        |        |           |             |
-| **New_Compiled_Regex_Glob** |      **p?th/a[e-g].txt** | **20,880.66 ns** | **417.662 ns** | **1,016.647 ns** | **20,812.23 ns** | **193.99** |   **11.20** | **3.1128** |      **-** |   **13064 B** |          **NA** |
-|         New_DotNet_Glob |      p?th/a[e-g].txt |  1,264.50 ns |  24.177 ns |    63.692 ns |  1,258.52 ns |  11.66 |    0.68 | 0.3319 |      - |    1392 B |          NA |
-|         New_Corvus_Glob |      p?th/a[e-g].txt |    108.09 ns |   2.200 ns |     4.290 ns |    108.22 ns |   1.00 |    0.00 |      - |      - |         - |          NA |
+|                  Method |              Pattern |         Mean |      Error |    StdDev |  Ratio | RatioSD |   Gen0 |   Gen1 | Allocated | Alloc Ratio |
+|------------------------ |--------------------- |-------------:|-----------:|----------:|-------:|--------:|-------:|-------:|----------:|------------:|
+| **New_Compiled_Regex_Glob** | **p?th/(...)].txt [50]** | **13,877.19 ns** |  **81.928 ns** | **76.636 ns** | **111.47** |    **0.68** | **1.2512** | **0.0763** |   **21176 B** |          **NA** |
+|         New_DotNet_Glob | p?th/(...)].txt [50] |  1,303.24 ns |   9.116 ns |  8.527 ns |  10.47 |    0.07 | 0.1678 | 0.0019 |    2816 B |          NA |
+|         New_Corvus_Glob | p?th/(...)].txt [50] |    124.40 ns |   0.353 ns |  0.313 ns |   1.00 |    0.00 |      - |      - |         - |          NA |
+|                         |                      |              |            |           |        |         |        |        |           |             |
+| **New_Compiled_Regex_Glob** | **p?th/(...)].txt [21]** |  **8,345.30 ns** |  **37.882 ns** | **31.633 ns** | **136.11** |    **0.59** | **0.8392** | **0.0305** |   **14288 B** |          **NA** |
+|         New_DotNet_Glob | p?th/(...)].txt [21] |    807.77 ns |   6.698 ns |  5.938 ns |  13.18 |    0.10 | 0.1135 |      - |    1904 B |          NA |
+|         New_Corvus_Glob | p?th/(...)].txt [21] |     61.26 ns |   0.364 ns |  0.341 ns |   1.00 |    0.00 |      - |      - |         - |          NA |
+|                         |                      |              |            |           |        |         |        |        |           |             |
+| **New_Compiled_Regex_Glob** | **p?th/(...)].txt [46]** | **10,036.70 ns** | **100.789 ns** | **94.278 ns** |  **88.88** |    **0.87** | **1.0223** | **0.0458** |   **17336 B** |          **NA** |
+|         New_DotNet_Glob | p?th/(...)].txt [46] |  1,102.24 ns |   5.694 ns |  4.755 ns |   9.76 |    0.04 | 0.1411 |      - |    2376 B |          NA |
+|         New_Corvus_Glob | p?th/(...)].txt [46] |    112.92 ns |   0.281 ns |  0.263 ns |   1.00 |    0.00 |      - |      - |         - |          NA |
+|                         |                      |              |            |           |        |         |        |        |           |             |
+| **New_Compiled_Regex_Glob** |      **p?th/a[e-g].txt** |  **7,218.57 ns** |  **62.485 ns** | **58.448 ns** | **160.61** |    **1.79** | **0.7782** | **0.0305** |   **13064 B** |          **NA** |
+|         New_DotNet_Glob |      p?th/a[e-g].txt |    613.90 ns |   6.127 ns |  5.431 ns |  13.66 |    0.11 | 0.0830 |      - |    1392 B |          NA |
+|         New_Corvus_Glob |      p?th/a[e-g].txt |     44.95 ns |   0.233 ns |  0.218 ns |   1.00 |    0.00 |      - |      - |         - |          NA |
 
 
 ### Compile and match false
-|                 Method | NumberOfMatches |              Pattern |          Mean |        Error |        StdDev |    Ratio | RatioSD |   Gen0 |   Gen1 | Allocated | Alloc Ratio |
-|----------------------- |---------------- |--------------------- |--------------:|-------------:|--------------:|---------:|--------:|-------:|-------:|----------:|------------:|
-| **Compiled_Regex_IsMatch** |               **1** | **p?th/(...)].txt [21]** | **139,752.46 ns** | **6,424.810 ns** | **18,015.855 ns** | **1,223.35** |   **81.14** | **5.1270** | **2.4414** |   **22286 B** |          **NA** |
-|     DotNetGlob_IsMatch |               1 | p?th/(...)].txt [21] |   1,253.16 ns |    20.810 ns |     42.976 ns |    10.37 |    0.46 | 0.4539 |      - |    1904 B |          NA |
-|     CorvusGlob_IsMatch |               1 | p?th/(...)].txt [21] |     121.35 ns |     2.445 ns |      3.807 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
-|                        |                 |                      |               |              |               |          |         |        |        |           |             |
-| **Compiled_Regex_IsMatch** |               **1** | **p?th/(...)].txt [46]** | **152,524.28 ns** | **3,047.930 ns** |  **7,702.507 ns** |   **679.27** |   **46.46** | **6.8359** | **3.4180** |   **29175 B** |          **NA** |
-|     DotNetGlob_IsMatch |               1 | p?th/(...)].txt [46] |   2,004.83 ns |    39.688 ns |     89.582 ns |     9.06 |    0.53 | 0.5646 |      - |    2376 B |          NA |
-|     CorvusGlob_IsMatch |               1 | p?th/(...)].txt [46] |     222.17 ns |     4.466 ns |      7.823 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
-|                        |                 |                      |               |              |               |          |         |        |        |           |             |
-| **Compiled_Regex_IsMatch** |               **1** |      **p?th/a[e-g].txt** | **130,492.62 ns** | **2,378.685 ns** |  **5,834.954 ns** | **1,385.44** |   **86.96** | **4.6387** | **2.4414** |   **19480 B** |          **NA** |
-|     DotNetGlob_IsMatch |               1 |      p?th/a[e-g].txt |     986.72 ns |    19.257 ns |     26.995 ns |    10.41 |    0.30 | 0.3319 |      - |    1392 B |          NA |
-|     CorvusGlob_IsMatch |               1 |      p?th/a[e-g].txt |      95.01 ns |     1.835 ns |      2.320 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
-|                        |                 |                      |               |              |               |          |         |        |        |           |             |
-| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [21]** | **421,902.04 ns** | **7,706.025 ns** | **17,076.020 ns** |     **5.31** |    **0.30** | **4.8828** | **1.9531** |   **22276 B** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [21] | 148,875.12 ns | 2,911.091 ns |  3,681.598 ns |     1.88 |    0.07 | 0.2441 |      - |    1904 B |          NA |
-|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [21] |  79,654.45 ns | 1,580.265 ns |  3,082.185 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
-|                        |                 |                      |               |              |               |          |         |        |        |           |             |
-| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [46]** | **422,679.26 ns** | **8,259.183 ns** | **13,570.074 ns** |     **4.94** |    **0.23** | **6.8359** | **3.9063** |   **29168 B** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [46] | 147,765.51 ns | 2,905.293 ns |  3,345.739 ns |     1.73 |    0.08 | 0.4883 |      - |    2376 B |          NA |
-|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [46] |  85,605.19 ns | 1,698.802 ns |  3,106.356 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
-|                        |                 |                      |               |              |               |          |         |        |        |           |             |
-| **Compiled_Regex_IsMatch** |           **10000** |      **p?th/a[e-g].txt** | **413,981.57 ns** | **8,076.480 ns** | **10,214.161 ns** |     **5.21** |    **0.19** | **4.3945** | **1.9531** |   **19469 B** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 |      p?th/a[e-g].txt | 156,811.84 ns | 3,094.066 ns |  4,437.417 ns |     1.98 |    0.08 | 0.2441 |      - |    1392 B |          NA |
-|     CorvusGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  79,624.19 ns | 1,567.974 ns |  2,441.147 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
+|                 Method | NumberOfMatches |              Pattern |          Mean |        Error |       StdDev |    Ratio | RatioSD |   Gen0 |   Gen1 | Allocated | Alloc Ratio |
+|----------------------- |---------------- |--------------------- |--------------:|-------------:|-------------:|---------:|--------:|-------:|-------:|----------:|------------:|
+| **Compiled_Regex_IsMatch** |               **1** | **p?th/(...)].txt [21]** |  **75,896.72 ns** |   **482.550 ns** |   **427.768 ns** | **1,098.17** |    **6.25** | **1.2207** | **0.6104** |   **22284 B** |          **NA** |
+|     DotNetGlob_IsMatch |               1 | p?th/(...)].txt [21] |     813.62 ns |     6.044 ns |     5.654 ns |    11.80 |    0.08 | 0.1135 |      - |    1904 B |          NA |
+|     CorvusGlob_IsMatch |               1 | p?th/(...)].txt [21] |      69.05 ns |     0.437 ns |     0.365 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
+|                        |                 |                      |               |              |              |          |         |        |        |           |             |
+| **Compiled_Regex_IsMatch** |               **1** | **p?th/(...)].txt [46]** |  **84,555.94 ns** |   **528.328 ns** |   **468.349 ns** |   **694.16** |    **4.79** | **1.7090** | **0.8545** |   **29175 B** |          **NA** |
+|     DotNetGlob_IsMatch |               1 | p?th/(...)].txt [46] |   1,127.42 ns |     7.842 ns |     7.336 ns |     9.26 |    0.06 | 0.1411 |      - |    2376 B |          NA |
+|     CorvusGlob_IsMatch |               1 | p?th/(...)].txt [46] |     121.79 ns |     0.320 ns |     0.299 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
+|                        |                 |                      |               |              |              |          |         |        |        |           |             |
+| **Compiled_Regex_IsMatch** |               **1** |      **p?th/a[e-g].txt** |  **74,288.45 ns** |   **499.135 ns** |   **466.891 ns** | **1,425.78** |   **11.63** | **1.0986** | **0.4883** |   **19477 B** |          **NA** |
+|     DotNetGlob_IsMatch |               1 |      p?th/a[e-g].txt |     597.17 ns |     3.189 ns |     2.827 ns |    11.46 |    0.08 | 0.0830 |      - |    1392 B |          NA |
+|     CorvusGlob_IsMatch |               1 |      p?th/a[e-g].txt |      52.10 ns |     0.215 ns |     0.201 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
+|                        |                 |                      |               |              |              |          |         |        |        |           |             |
+| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [21]** | **195,131.76 ns** |   **433.322 ns** |   **384.129 ns** |     **4.50** |    **0.07** | **1.2207** | **0.4883** |   **22284 B** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [21] |  66,112.97 ns | 1,296.349 ns | 1,387.078 ns |     1.53 |    0.04 |      - |      - |    1904 B |          NA |
+|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [21] |  43,345.40 ns |   802.764 ns |   711.630 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
+|                        |                 |                      |               |              |              |          |         |        |        |           |             |
+| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [46]** | **206,238.39 ns** | **1,227.304 ns** | **1,087.973 ns** |     **4.81** |    **0.02** | **1.7090** | **0.7324** |   **29175 B** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [46] |  66,828.16 ns | 1,318.026 ns | 1,759.527 ns |     1.56 |    0.04 | 0.1221 |      - |    2376 B |          NA |
+|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [46] |  42,863.40 ns |   141.561 ns |   125.491 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
+|                        |                 |                      |               |              |              |          |         |        |        |           |             |
+| **Compiled_Regex_IsMatch** |           **10000** |      **p?th/a[e-g].txt** | **194,019.89 ns** |   **846.170 ns** |   **791.508 ns** |     **4.54** |    **0.03** | **0.9766** | **0.4883** |   **19469 B** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  63,989.33 ns |   428.623 ns |   334.641 ns |     1.50 |    0.01 |      - |      - |    1392 B |          NA |
+|     CorvusGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  42,718.38 ns |   301.756 ns |   267.499 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
 
 
 ### Compile and match true
-|                 Method | NumberOfMatches |              Pattern |         Mean |        Error |       StdDev |    Ratio | RatioSD |   Gen0 |   Gen1 | Allocated | Alloc Ratio |
-|----------------------- |---------------- |--------------------- |-------------:|-------------:|-------------:|---------:|--------:|-------:|-------:|----------:|------------:|
-| **Compiled_Regex_IsMatch** |               **1** | **p?th/(...)].txt [21]** | **170,338.6 ns** |  **4,021.46 ns** | **11,210.21 ns** | **1,081.97** |   **98.92** | **4.8828** | **2.4414** |   **22284 B** |          **NA** |
-|     DotNetGlob_IsMatch |               1 | p?th/(...)].txt [21] |   1,694.4 ns |     33.54 ns |     80.36 ns |    10.61 |    0.72 | 0.4539 |      - |    1904 B |          NA |
-|     CorvusGlob_IsMatch |               1 | p?th/(...)].txt [21] |     157.7 ns |      3.25 ns |      9.59 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
-|                        |                 |                      |              |              |              |          |         |        |        |           |             |
-| **Compiled_Regex_IsMatch** |               **1** | **p?th/(...)].txt [46]** | **173,928.9 ns** |  **3,148.74 ns** |  **4,712.89 ns** |   **684.37** |   **33.45** | **6.8359** | **3.4180** |   **29175 B** |          **NA** |
-|     DotNetGlob_IsMatch |               1 | p?th/(...)].txt [46] |   2,299.5 ns |     45.63 ns |     87.91 ns |     9.08 |    0.47 | 0.5646 |      - |    2376 B |          NA |
-|     CorvusGlob_IsMatch |               1 | p?th/(...)].txt [46] |     253.4 ns |      5.11 ns |      9.59 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
-|                        |                 |                      |              |              |              |          |         |        |        |           |             |
-| **Compiled_Regex_IsMatch** |               **1** |      **p?th/a[e-g].txt** | **152,687.1 ns** |  **2,541.88 ns** |  **3,393.34 ns** | **1,345.74** |   **37.74** | **4.6387** | **2.4414** |   **19480 B** |          **NA** |
-|     DotNetGlob_IsMatch |               1 |      p?th/a[e-g].txt |   1,174.1 ns |     23.38 ns |     50.83 ns |    10.36 |    0.52 | 0.3319 |      - |    1392 B |          NA |
-|     CorvusGlob_IsMatch |               1 |      p?th/a[e-g].txt |     113.2 ns |      2.25 ns |      3.37 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
-|                        |                 |                      |              |              |              |          |         |        |        |           |             |
-| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [21]** | **507,652.0 ns** | **11,313.63 ns** | **33,358.49 ns** |     **5.54** |    **0.51** | **4.8828** | **1.9531** |   **22284 B** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [21] | 171,689.9 ns |  3,229.09 ns |  6,596.17 ns |     1.83 |    0.12 | 0.2441 |      - |    1904 B |          NA |
-|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [21] |  92,780.8 ns |  1,852.50 ns |  4,976.62 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
-|                        |                 |                      |              |              |              |          |         |        |        |           |             |
-| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [46]** | **480,558.4 ns** |  **9,395.33 ns** | **18,101.60 ns** |     **5.35** |    **0.34** | **6.8359** | **3.9063** |   **29168 B** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [46] | 167,014.3 ns |  3,336.65 ns |  7,038.12 ns |     1.86 |    0.13 | 0.4883 |      - |    2376 B |          NA |
-|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [46] |  89,855.2 ns |  1,793.07 ns |  4,465.36 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
-|                        |                 |                      |              |              |              |          |         |        |        |           |             |
-| **Compiled_Regex_IsMatch** |           **10000** |      **p?th/a[e-g].txt** | **465,242.5 ns** |  **9,234.98 ns** | **14,912.76 ns** |     **5.12** |    **0.33** | **4.3945** | **1.9531** |   **19469 B** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 |      p?th/a[e-g].txt | 165,943.4 ns |  3,316.42 ns |  6,229.05 ns |     1.83 |    0.12 | 0.2441 |      - |    1392 B |          NA |
-|     CorvusGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  91,033.9 ns |  1,818.06 ns |  4,915.23 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
+|                 Method | NumberOfMatches |              Pattern |          Mean |        Error |       StdDev |    Ratio | RatioSD |   Gen0 |   Gen1 | Allocated | Alloc Ratio |
+|----------------------- |---------------- |--------------------- |--------------:|-------------:|-------------:|---------:|--------:|-------:|-------:|----------:|------------:|
+| **Compiled_Regex_IsMatch** |               **1** | **p?th/(...)].txt [21]** |  **77,030.97 ns** | **1,093.429 ns** | **1,022.794 ns** | **1,109.15** |   **15.59** | **1.2207** | **0.6104** |   **22284 B** |          **NA** |
+|     DotNetGlob_IsMatch |               1 | p?th/(...)].txt [21] |     786.76 ns |     8.713 ns |     8.150 ns |    11.33 |    0.12 | 0.1135 |      - |    1904 B |          NA |
+|     CorvusGlob_IsMatch |               1 | p?th/(...)].txt [21] |      69.45 ns |     0.372 ns |     0.348 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
+|                        |                 |                      |               |              |              |          |         |        |        |           |             |
+| **Compiled_Regex_IsMatch** |               **1** | **p?th/(...)].txt [46]** |  **84,950.14 ns** | **1,110.923 ns** |   **984.804 ns** |   **694.92** |    **7.58** | **1.7090** | **0.8545** |   **29175 B** |          **NA** |
+|     DotNetGlob_IsMatch |               1 | p?th/(...)].txt [46] |   1,130.98 ns |     6.183 ns |     5.784 ns |     9.25 |    0.05 | 0.1411 |      - |    2376 B |          NA |
+|     CorvusGlob_IsMatch |               1 | p?th/(...)].txt [46] |     122.24 ns |     0.332 ns |     0.294 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
+|                        |                 |                      |               |              |              |          |         |        |        |           |             |
+| **Compiled_Regex_IsMatch** |               **1** |      **p?th/a[e-g].txt** |  **74,415.53 ns** |   **319.384 ns** |   **298.752 ns** | **1,432.32** |   **10.49** | **1.0986** | **0.4883** |   **19477 B** |          **NA** |
+|     DotNetGlob_IsMatch |               1 |      p?th/a[e-g].txt |     629.92 ns |     7.227 ns |     6.760 ns |    12.12 |    0.17 | 0.0830 |      - |    1392 B |          NA |
+|     CorvusGlob_IsMatch |               1 |      p?th/a[e-g].txt |      51.96 ns |     0.304 ns |     0.285 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
+|                        |                 |                      |               |              |              |          |         |        |        |           |             |
+| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [21]** | **199,287.12 ns** |   **590.785 ns** |   **552.620 ns** |     **4.51** |    **0.06** | **1.2207** | **0.4883** |   **22276 B** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [21] |  63,911.88 ns |   353.536 ns |   313.400 ns |     1.45 |    0.02 |      - |      - |    1904 B |          NA |
+|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [21] |  44,162.74 ns |   642.971 ns |   569.977 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
+|                        |                 |                      |               |              |              |          |         |        |        |           |             |
+| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [46]** | **202,581.92 ns** |   **689.381 ns** |   **644.847 ns** |     **4.74** |    **0.02** | **1.7090** | **0.7324** |   **29175 B** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [46] |  67,650.85 ns |   774.893 ns |   724.835 ns |     1.58 |    0.02 | 0.1221 |      - |    2376 B |          NA |
+|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [46] |  42,734.74 ns |   137.297 ns |   107.193 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
+|                        |                 |                      |               |              |              |          |         |        |        |           |             |
+| **Compiled_Regex_IsMatch** |           **10000** |      **p?th/a[e-g].txt** | **195,077.89 ns** |   **450.167 ns** |   **399.061 ns** |     **4.58** |    **0.02** | **0.9766** | **0.4883** |   **19469 B** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  64,242.37 ns |   827.481 ns |   733.541 ns |     1.51 |    0.02 |      - |      - |    1392 B |          NA |
+|     CorvusGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  42,597.05 ns |   232.092 ns |   193.807 ns |     1.00 |    0.00 |      - |      - |         - |          NA |
 
 
 ### Match false
-|                 Method | NumberOfMatches |              Pattern |      Mean |    Error |    StdDev |    Median | Ratio | RatioSD | Allocated | Alloc Ratio |
-|----------------------- |---------------- |--------------------- |----------:|---------:|----------:|----------:|------:|--------:|----------:|------------:|
-| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [50]** | **534.24 μs** | **8.627 μs** |  **9.935 μs** | **533.64 μs** |  **7.54** |    **0.24** |         **-** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [50] | 107.68 μs | 1.822 μs |  2.433 μs | 107.31 μs |  1.52 |    0.05 |         - |          NA |
-|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [50] |  71.04 μs | 1.417 μs |  1.516 μs |  70.89 μs |  1.00 |    0.00 |         - |          NA |
-|                        |                 |                      |           |          |           |           |       |         |           |             |
-| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [21]** | **415.27 μs** | **7.978 μs** |  **8.193 μs** | **413.94 μs** |  **5.97** |    **0.18** |         **-** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [21] | 133.15 μs | 2.443 μs |  4.343 μs | 132.76 μs |  1.90 |    0.05 |         - |          NA |
-|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [21] |  69.69 μs | 1.380 μs |  1.356 μs |  69.74 μs |  1.00 |    0.00 |         - |          NA |
-|                        |                 |                      |           |          |           |           |       |         |           |             |
-| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [46]** | **418.49 μs** | **8.300 μs** |  **8.152 μs** | **417.02 μs** |  **6.08** |    **0.16** |         **-** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [46] | 130.19 μs | 2.447 μs |  4.020 μs | 130.19 μs |  1.88 |    0.06 |         - |          NA |
-|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [46] |  68.87 μs | 1.366 μs |  1.341 μs |  68.96 μs |  1.00 |    0.00 |         - |          NA |
-|                        |                 |                      |           |          |           |           |       |         |           |             |
-| **Compiled_Regex_IsMatch** |           **10000** |      **p?th/a[e-g].txt** | **430.65 μs** | **8.243 μs** | **22.285 μs** | **424.25 μs** |  **6.22** |    **0.34** |         **-** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 |      p?th/a[e-g].txt | 129.48 μs | 2.493 μs |  3.152 μs | 129.26 μs |  1.84 |    0.05 |         - |          NA |
-|     CorvusGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  70.64 μs | 1.318 μs |  1.410 μs |  70.65 μs |  1.00 |    0.00 |         - |          NA |
+|                 Method | NumberOfMatches |              Pattern |      Mean |    Error |   StdDev |    Median | Ratio | RatioSD | Allocated | Alloc Ratio |
+|----------------------- |---------------- |--------------------- |----------:|---------:|---------:|----------:|------:|--------:|----------:|------------:|
+| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [50]** | **279.37 μs** | **1.137 μs** | **1.008 μs** | **279.38 μs** |  **5.94** |    **0.03** |         **-** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [50] |  62.83 μs | 0.223 μs | 0.209 μs |  62.81 μs |  1.34 |    0.01 |         - |          NA |
+|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [50] |  47.00 μs | 0.208 μs | 0.184 μs |  46.97 μs |  1.00 |    0.00 |         - |          NA |
+|                        |                 |                      |           |          |          |           |       |         |           |             |
+| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [21]** | **210.16 μs** | **1.505 μs** | **1.408 μs** | **209.75 μs** |  **4.50** |    **0.03** |         **-** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [21] |  68.52 μs | 1.357 μs | 1.902 μs |  68.80 μs |  1.45 |    0.04 |         - |          NA |
+|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [21] |  46.70 μs | 0.132 μs | 0.117 μs |  46.67 μs |  1.00 |    0.00 |         - |          NA |
+|                        |                 |                      |           |          |          |           |       |         |           |             |
+| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [46]** | **213.06 μs** | **0.647 μs** | **0.574 μs** | **213.27 μs** |  **4.07** |    **0.28** |         **-** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [46] |  66.41 μs | 1.280 μs | 1.665 μs |  65.70 μs |  1.26 |    0.09 |         - |          NA |
+|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [46] |  51.67 μs | 1.140 μs | 3.363 μs |  49.30 μs |  1.00 |    0.00 |         - |          NA |
+|                        |                 |                      |           |          |          |           |       |         |           |             |
+| **Compiled_Regex_IsMatch** |           **10000** |      **p?th/a[e-g].txt** | **207.46 μs** | **0.609 μs** | **0.570 μs** | **207.43 μs** |  **4.44** |    **0.01** |         **-** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  68.23 μs | 1.326 μs | 1.579 μs |  67.37 μs |  1.46 |    0.03 |         - |          NA |
+|     CorvusGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  46.77 μs | 0.098 μs | 0.082 μs |  46.79 μs |  1.00 |    0.00 |         - |          NA |
 
 ### Match true
-|                 Method | NumberOfMatches |              Pattern |      Mean |     Error |    StdDev |    Median | Ratio | RatioSD | Allocated | Alloc Ratio |
-|----------------------- |---------------- |--------------------- |----------:|----------:|----------:|----------:|------:|--------:|----------:|------------:|
-| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [50]** | **518.23 μs** | **10.312 μs** | **17.788 μs** | **517.59 μs** |  **7.92** |    **0.31** |       **1 B** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [50] | 115.39 μs |  2.303 μs |  4.546 μs | 115.58 μs |  1.72 |    0.08 |         - |          NA |
-|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [50] |  65.53 μs |  0.924 μs |  0.819 μs |  65.57 μs |  1.00 |    0.00 |         - |          NA |
-|                        |                 |                      |           |           |           |           |       |         |           |             |
-| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [21]** | **423.75 μs** |  **6.959 μs** |  **9.048 μs** | **421.94 μs** |  **6.46** |    **0.18** |         **-** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [21] | 144.82 μs |  2.311 μs |  2.162 μs | 144.46 μs |  2.20 |    0.05 |         - |          NA |
-|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [21] |  65.70 μs |  1.108 μs |  1.231 μs |  65.65 μs |  1.00 |    0.00 |         - |          NA |
-|                        |                 |                      |           |           |           |           |       |         |           |             |
-| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [46]** | **428.16 μs** |  **4.422 μs** |  **4.136 μs** | **428.73 μs** |  **6.74** |    **0.10** |         **-** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [46] | 128.13 μs |  2.550 μs |  2.504 μs | 127.75 μs |  2.01 |    0.04 |         - |          NA |
-|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [46] |  63.61 μs |  1.043 μs |  0.924 μs |  63.64 μs |  1.00 |    0.00 |         - |          NA |
-|                        |                 |                      |           |           |           |           |       |         |           |             |
-| **Compiled_Regex_IsMatch** |           **10000** |      **p?th/a[e-g].txt** | **414.41 μs** |  **7.874 μs** |  **8.752 μs** | **415.76 μs** |  **6.28** |    **0.25** |         **-** |          **NA** |
-|     DotNetGlob_IsMatch |           10000 |      p?th/a[e-g].txt | 127.07 μs |  2.493 μs |  2.332 μs | 127.28 μs |  1.92 |    0.09 |         - |          NA |
-|     CorvusGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  76.33 μs |  2.237 μs |  6.560 μs |  78.58 μs |  1.00 |    0.00 |         - |          NA |
+|                 Method | NumberOfMatches |              Pattern |      Mean |    Error |   StdDev | Ratio | RatioSD | Allocated | Alloc Ratio |
+|----------------------- |---------------- |--------------------- |----------:|---------:|---------:|------:|--------:|----------:|------------:|
+| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [50]** | **279.32 μs** | **1.830 μs** | **1.712 μs** |  **6.23** |    **0.03** |         **-** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [50] |  63.30 μs | 0.241 μs | 0.225 μs |  1.41 |    0.00 |         - |          NA |
+|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [50] |  44.85 μs | 0.137 μs | 0.114 μs |  1.00 |    0.00 |         - |          NA |
+|                        |                 |                      |           |          |          |       |         |           |             |
+| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [21]** | **209.55 μs** | **0.983 μs** | **0.821 μs** |  **4.67** |    **0.03** |         **-** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [21] |  66.46 μs | 1.294 μs | 1.490 μs |  1.48 |    0.04 |         - |          NA |
+|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [21] |  44.87 μs | 0.148 μs | 0.131 μs |  1.00 |    0.00 |         - |          NA |
+|                        |                 |                      |           |          |          |       |         |           |             |
+| **Compiled_Regex_IsMatch** |           **10000** | **p?th/(...)].txt [46]** | **212.46 μs** | **1.412 μs** | **1.321 μs** |  **4.73** |    **0.03** |         **-** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 | p?th/(...)].txt [46] |  68.88 μs | 0.537 μs | 0.502 μs |  1.53 |    0.01 |         - |          NA |
+|     CorvusGlob_IsMatch |           10000 | p?th/(...)].txt [46] |  44.90 μs | 0.173 μs | 0.135 μs |  1.00 |    0.00 |         - |          NA |
+|                        |                 |                      |           |          |          |       |         |           |             |
+| **Compiled_Regex_IsMatch** |           **10000** |      **p?th/a[e-g].txt** | **206.77 μs** | **1.097 μs** | **1.026 μs** |  **4.64** |    **0.03** |         **-** |          **NA** |
+|     DotNetGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  66.17 μs | 0.124 μs | 0.097 μs |  1.49 |    0.00 |         - |          NA |
+|     CorvusGlob_IsMatch |           10000 |      p?th/a[e-g].txt |  44.56 μs | 0.115 μs | 0.107 μs |  1.00 |    0.00 |         - |          NA |
 
 # Credits
 
