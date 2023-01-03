@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2EF20DF7-F0AF-42CA-AA97-CD140A8D0E34}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		..\.gitignore = ..\.gitignore
 		StyleCop.ruleset = StyleCop.ruleset
 	EndProjectSection
 EndProject

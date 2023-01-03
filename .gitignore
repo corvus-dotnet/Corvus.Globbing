@@ -339,3 +339,4 @@ coverage.cobertura.xml
 
 # SpecFlow generated files
 *.feature.cs
+*.ncrunchsolution
