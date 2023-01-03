@@ -5,13 +5,21 @@
 		<TargetFramework>net6.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
+
+      <!--
+      CA1822: make members static where possible.
+      The types in this project are concerned with setting up benchmarks. These types are not publicly
+      available, and they are not themselves performance critical, so this particular suggestion just
+      ends up causing busy work.
+      -->
+      <NoWarn>$(NoWarn);CA1822</NoWarn>
 	</PropertyGroup>
 	<PropertyGroup>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<RestoreLockedMode Condition="$(ContinuousIntegrationBuild) == 'true'">true</RestoreLockedMode>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
+		<PackageReference Include="BenchmarkDotNet" Version="0.13.3" />
 		<PackageReference Include="DotNet.Glob" Version="3.1.3" />
 		<PackageReference Include="Endjin.RecommendedPractices.GitHub" Version="2.1.4">
 			<PrivateAssets>all</PrivateAssets>

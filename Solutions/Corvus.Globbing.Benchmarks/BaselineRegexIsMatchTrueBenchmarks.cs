@@ -53,7 +53,7 @@ namespace Corvus.Globbing.Benchmarks
 
                 Span<Corvus.Globbing.GlobToken> tokenizedGlob = stackalloc Corvus.Globbing.GlobToken[this.patternLength!.Value];
                 int tokenCount = Corvus.Globbing.GlobTokenizer.Tokenize(this.Pattern, tokenizedGlob);
-                this.corvusGlob = tokenizedGlob.Slice(0, tokenCount).ToArray();
+                this.corvusGlob = tokenizedGlob[..tokenCount].ToArray();
 
                 this.InitialiseGlobTestData(value!, MaxResults, 0);
             }

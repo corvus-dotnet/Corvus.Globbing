@@ -14,8 +14,7 @@ namespace Corvus.Globbing.Benchmarks
         /// <summary>
         /// Main entry point.
         /// </summary>
-        /// <param name="args">Program arguments.</param>
-        public static void Main(string[] args)
+        public static void Main()
         {
             BenchmarkRunner.Run<BaselineRegexGlobCompileBenchmarks>();
             BenchmarkRunner.Run<BaselineRegexCompileAndMatchFalseBenchmarks>();
