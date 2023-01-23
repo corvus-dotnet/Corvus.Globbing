@@ -34,13 +34,13 @@ namespace Corvus.Globbing.Steps
             this.scenarioContext.Set(Glob.Match(glob, path, System.StringComparison.OrdinalIgnoreCase), ResultKey);
         }
 
-        [Then(@"the result should be true")]
+        [Then("the result should be true")]
         public void ThenTheResultShouldBeTrue()
         {
             Assert.IsTrue(this.scenarioContext.Get<bool>(ResultKey));
         }
 
-        [Then(@"the result should be false")]
+        [Then("the result should be false")]
         public void ThenTheResultShouldBeFalse()
         {
             Assert.IsFalse(this.scenarioContext.Get<bool>(ResultKey));
