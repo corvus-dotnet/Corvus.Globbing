@@ -42,7 +42,7 @@ namespace Corvus.Globbing.Benchmarks.Utils
                 token.Accept(this);
             }
 
-            this.stringBuilder.Append("$");
+            this.stringBuilder.Append('$');
             return this.stringBuilder.ToString();
         }
 
@@ -78,9 +78,9 @@ namespace Corvus.Globbing.Benchmarks.Utils
         /// <inheritdoc />
         void IGlobTokenVisitor.Visit(LiteralToken token)
         {
-            this.stringBuilder.Append("(");
+            this.stringBuilder.Append('(');
             this.stringBuilder.Append(Regex.Escape(token.Value));
-            this.stringBuilder.Append(")");
+            this.stringBuilder.Append(')');
         }
 
         /// <inheritdoc />
