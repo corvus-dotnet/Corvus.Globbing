@@ -4,11 +4,11 @@
     "net6.0": {
       "BenchmarkDotNet": {
         "type": "Direct",
-        "requested": "[0.13.3, )",
-        "resolved": "0.13.3",
-        "contentHash": "Y0aNdOZ9LdcwVniiAmQEcdYnpR8qe+BOSmqMBukJ1+ez7PiyqpwJHbppOJ1ibHKh28qdq781l8hsPIld5lvsIw==",
+        "requested": "[0.13.5, )",
+        "resolved": "0.13.5",
+        "contentHash": "PiwINqvreKV7L+BQlaZ2qcJ90s88LbLqZoUWbKnEPzvmsWd4pUH58Yjp+mFn311n8Jz0Y0JsD+jWa+Kh67IG3A==",
         "dependencies": {
-          "BenchmarkDotNet.Annotations": "0.13.3",
+          "BenchmarkDotNet.Annotations": "0.13.5",
           "CommandLineParser": "2.4.3",
           "Gee.External.Capstone": "2.3.0",
           "Iced": "1.17.0",
@@ -28,19 +28,19 @@
       },
       "Endjin.RecommendedPractices.GitHub": {
         "type": "Direct",
-        "requested": "[2.1.4, )",
-        "resolved": "2.1.4",
-        "contentHash": "SUBvnwWuKtklIv9NWqY9PI/J1nONyvcOlitIhUTq5Hk8K0QnBoISc1xTZTe0C0tOtUW1JIAZeEYwAAeuzQwtYg==",
+        "requested": "[2.1.5, )",
+        "resolved": "2.1.5",
+        "contentHash": "PoZqxrp7iYbSF0Vi2Wtj2sepxwZA3i4Yq9CGueralFhLYcHE60E3bQOwHLwWsv4oNf60FYJrr3RjFPa7pv1HyA==",
         "dependencies": {
-          "Endjin.RecommendedPractices": "2.1.4",
+          "Endjin.RecommendedPractices": "2.1.5",
           "Microsoft.SourceLink.GitHub": "1.1.1"
         }
       },
       "Roslynator.Analyzers": {
         "type": "Direct",
-        "requested": "[4.2.0, )",
-        "resolved": "4.2.0",
-        "contentHash": "3N8CNx1Q/Q5VDDL7qgfZRgTURyMqzHAkAB59AZKRnsOXoh2n9xRzhiBMIbJaUtBATmieECBx68GcjRn2xoNDug=="
+        "requested": "[4.3.0, )",
+        "resolved": "4.3.0",
+        "contentHash": "NZNaV9DAYGHKZ753WfhtBj8eoP40LLJsA6JQXdzhF87iTZAdbKCgp32mI3cnQF4TMXz7bk+CgzF/kDG+m+9bCg=="
       },
       "StyleCop.Analyzers": {
         "type": "Direct",
@@ -68,8 +68,8 @@
       },
       "BenchmarkDotNet.Annotations": {
         "type": "Transitive",
-        "resolved": "0.13.3",
-        "contentHash": "p0ur0mig3KCtyqs88V33ciTGH+iKr3u2bzJWwkm11/4u5EZs47dDgAq1VuZBj076E3QLjEYpe0utjttCwcGMdw=="
+        "resolved": "0.13.5",
+        "contentHash": "ORcRi9/fnjRfINKiAnAgIsRlQ15Gj2Lki7AluHnAVMk/lTyQ2nwaa+F+ezW8f3tElBDoZql02+J2lIwHbu1eoA=="
       },
       "CommandLineParser": {
         "type": "Transitive",
@@ -78,16 +78,16 @@
       },
       "Corvus.Extensions": {
         "type": "Transitive",
-        "resolved": "1.1.10",
-        "contentHash": "F43KpxsKXQhdxYPV6DRgHy2GfOJiB6/Jlg4gZzE/IQN/G1tasxWaqwUWVj+fk9HKNiDOJkcVRgxactkwD6/E3w==",
+        "resolved": "1.1.11",
+        "contentHash": "HYRd2hg8OkhejLs6ywYaGi/xuP71B3ffBeRQkZ5kywlyhxXxfQzyNuE7mvZqwP0ASFCpNLnkZwa3n3BgC59uQg==",
         "dependencies": {
           "System.Interactive": "3.2.0"
         }
       },
       "Endjin.RecommendedPractices": {
         "type": "Transitive",
-        "resolved": "2.1.4",
-        "contentHash": "3B8zpRU3LEwHNZvEU8NHhzFZKZDpVaI4sMhv8bXcEoLQhRvJiBKQ90hibZIz7veX1Zi9PXrsH11HzdZBQMmntQ==",
+        "resolved": "2.1.5",
+        "contentHash": "iEFt7iG7gaBi24xSkEPFywEkZkC4yoE61PEkh2Nspqe8zbwKifSn/05jRlvRnYnanXdON+AzTKxLZf28vgCOsA==",
         "dependencies": {
           "Microsoft.Build.Tasks.Git": "1.1.1"
         }
@@ -311,7 +311,7 @@
       "corvus.globbing": {
         "type": "Project",
         "dependencies": {
-          "Corvus.Extensions": "[1.1.10, )",
+          "Corvus.Extensions": "[1.1.11, )",
           "System.Collections.Immutable": "[6.0.0, )",
           "System.Memory": "[4.5.5, )"
         }
