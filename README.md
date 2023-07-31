@@ -1,7 +1,7 @@
 # Corvus.Globbing
 [![Build Status](https://dev.azure.com/endjin-labs/Corvus.Globbing/_apis/build/status/corvus-dotnet.Corvus.Globbing?branchName=main)](https://dev.azure.com/endjin-labs/Corvus.Globbing/_build/latest?definitionId=4&branchName=main)
 [![GitHub license](https://img.shields.io/badge/License-Apache%202-blue.svg)](https://raw.githubusercontent.com/corvus-dotnet/Corvus.Globbing/main/LICENSE)
-[![IMM](https://endimmfuncdev.azurewebsites.net/api/imm/github/corvus-dotnet/Corvus.Globbing/total?cache=false)](https://endimmfuncdev.azurewebsites.net/api/imm/github/corvus-dotnet/Corvus.Globbing/total?cache=false)
+[![IMM](https://imm.endjin.com/api/imm/github/corvus-dotnet/Corvus.Globbing/total?cache=false)](https://imm.endjin.com/api/imm/github/corvus-dotnet/Corvus.Globbing/total?cache=false)
 
 A zero allocation globbing library.
 
@@ -251,3 +251,7 @@ _(note that we have re-baselined on the Corvus implementation for ease of compar
 # Credits
 
 This library would not exist without [Dotnet Glob](https://github.com/dazinator/DotNet.Glob) - I've built the specs from its unit tests, and modelled the actual matching algorithms on the implementation in that library (although it is somewhat different in structure). The project has a "give back" mechanism so I've donated a small amount. You could consider doing so too.
+
+
+[![OpenChain](https://imm.endjin.com/api/imm/github/corvus-dotnet/Corvus.Globbing/rule/66efac1a-662c-40cf-b4ec-8b34c29e9fd7?cache=false)](https://imm.endjin.com/api/imm/github/corvus-dotnet/Corvus.Globbing/rule/66efac1a-662c-40cf-b4ec-8b34c29e9fd7?cache=false)
+
