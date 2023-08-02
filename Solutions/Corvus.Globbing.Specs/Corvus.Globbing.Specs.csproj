@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="$(EndjinProjectPropsPath)" Condition="$(EndjinProjectPropsPath) != ''" />
 
 	<PropertyGroup>
@@ -22,14 +22,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Corvus.Testing.SpecFlow.NUnit" Version="2.0.0" />
+		<PackageReference Include="Corvus.Testing.SpecFlow.NUnit" Version="2.0.1" />
 		<PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" />
-		<PackageReference Include="Endjin.RecommendedPractices.GitHub" Version="2.1.4">
+		<PackageReference Include="Endjin.RecommendedPractices.GitHub" Version="2.1.5">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" />
-		<PackageReference Include="FluentAssertions" Version="6.8.0" />
+		<PackageReference Include="FluentAssertions" Version="6.11.0" />
 	</ItemGroup>
 
 	<ItemGroup>
