@@ -8,7 +8,7 @@
 
 #!markdown
 
-First, build the solution and add a reference to the `Corvus.Globbing` built output.
+First, build the solution and add a reference to the `Corvus.Globbing` build output.
 
 #!csharp
 
