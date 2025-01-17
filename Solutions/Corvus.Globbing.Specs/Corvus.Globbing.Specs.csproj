@@ -24,9 +24,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Corvus.Testing.ReqnRoll.NUnit" Version="4.0.3" />
-		<PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
-		<PackageReference Include="System.Memory" Version="4.6.0" />
-		<PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
 		<PackageReference Include="Endjin.RecommendedPractices.GitHub" Version="2.1.15">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
