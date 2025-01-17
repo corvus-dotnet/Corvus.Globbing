@@ -1,14 +1,26 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"name":"csharp"}]}}
+
 #!markdown
 
 ## Corvus.Globbing - Sample Notebook
 
 #!markdown
 
-First, add a reference to the `Corvus.Globbing` NuGet package.
+First, build the solution and add a reference to the `Corvus.Globbing` built output.
 
 #!csharp
 
-#r "nuget: Corvus.Globbing, 0.1.0"
+#r "./../../Solutions/Corvus.Globbing/bin/Debug/net8.0/Corvus.Globbing.dll"
+
+#!markdown
+
+Or, add a reference to the latest `Corvus.Globbing` NuGet package.
+
+#!csharp
+
+#r "nuget: Corvus.Globbing, *"
 
 #!markdown
 
@@ -29,8 +41,7 @@ The simplest case just requires you to pass the glob and the candidate path to m
 
 #!csharp
 
-bool isMatch = Glob.Match("path/*atstand", "path/fooatstand");
-return isMatch;
+Glob.Match("path/*atstand", "path/fooatstand").Display(); // true
 
 #!markdown
 
@@ -38,8 +49,7 @@ You can provide all the standard [string-comparison](https://learn.microsoft.com
 
 #!csharp
 
-bool isMatch = Glob.Match("path/*atstand", "PATH/fooatstand", StringComparison.OrdinalIgnoreCase); 
-return isMatch;
+Glob.Match("path/*atstand", "PATH/fooatstand", StringComparison.OrdinalIgnoreCase).Display(); // true
 
 #!markdown
 
@@ -103,8 +113,6 @@ MatchAgainstMultiplePathsExample(pattern)
 For very long potential globs, you could fall back to the ArrayPool allocation technique:
 
 #!csharp
-
-#nullable enable
 
 public static void MatchLargeGlobAgainstMultiplePathsExample(string pattern)
 {
