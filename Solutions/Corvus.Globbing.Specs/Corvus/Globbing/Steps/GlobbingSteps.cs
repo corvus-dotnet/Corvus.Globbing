@@ -5,7 +5,7 @@
 namespace Corvus.Globbing.Steps
 {
     using NUnit.Framework;
-    using TechTalk.SpecFlow;
+    using Reqnroll;
 
     /// <summary>
     /// Steps for the globbing specs.
